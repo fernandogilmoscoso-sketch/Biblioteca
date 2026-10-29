@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mi Biblioteca - Cloud Sync</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=JetBrains+Mono:wght@400;500;700&display=swap">
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+    import { getFirestore, collection, doc, setDoc, getDocs, updateDoc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBhhPJqDUhWVItIeCOazwHAn6dU1dfSVkk",
+      authDomain: "biblioteca-51353.firebaseapp.com",
+      projectId: "biblioteca-51353",
+      storageBucket: "biblioteca-51353.firebasestorage.app",
+      messagingSenderId: "369597092033",
+      appId: "1:369597092033:web:b8938e6ec952291a6b0440"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    window.firebaseReady = { auth, db, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, setDoc, doc, collection, getDocs, updateDoc, deleteDoc, query, where };
+  </script>
+
+  <style>
+/* ── TOKENS ─────────────────────────────────────────── */
+:root {
+  --ground:      #F5F3EE;
+  --surface:     #FFFFFF;
+  --surface2:    #EDEBE4;
+  --border:      #D5D0C6;
+  --text:        #1E1C18;
+  --text-muted:  #6B6760;
+  --accent:      #1B4332;
+  --accent-dim:  #D1E4DA;
+  --accent-fg:   #FFFFFF;
+  --gold:        #B8862A;
+  --gold-dim:    #F6EECE;
+  --danger:      #8B2020;
+  --danger-dim:  #FDECEA;
+  --ok:          #245C2F;
+  --ok-dim:      #E3F2E6;
+  --sidebar-bg:  #1B4332;
+  --sidebar-text:#C8DDD5;
+  --sidebar-act: #FFFFFF;
+  --sidebar-act-bg: rgba(255,255,255,0.12);
+  --shadow:      0 1px 3px rgba(30,28,24,.10), 0 4px 12px rgba(30,28,24,.06);
+  --radius:      6px;
+  --font-d: 'Cormorant Garamond', Georgia, serif;
+  --font-u: 'DM Sans', system-ui, sans-serif;
+  --font-m: 'JetBrains Mono', monospace;
+}
+
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+html { height:100%; }
+body {
+  height:100%; font-family:var(--font-u); font-size:14px; line-height:1.6;
+  color:var(--text); background:var(--ground);
+  -webkit-font-smoothing:antialiased;
+}
+button { font-family:var(--font-u); cursor:pointer; }
+input, select, textarea { font-family:var(--font-u); }
+a { color:var(--accent); text-decoration:none; }
+
+/* ── LOGIN SCREEN ───────────────────────────────────── */
+#login-screen {
+  display:flex; align-items:center; justify-content:center; height:100vh;
+  position:fixed; inset:0; z-index:9999; background:var(--ground);
+}
+#login-screen.hidden { display:none; }
+
+.login-box {
+  background:var(--surface); padding:40px 36px; border-radius:12px;
+  box-shadow:var(--shadow); border:1px solid var(--border);
+  max-width:360px; width:100%; text-align:center;
+}
+.login-logo {
+  font-family:var(--font-d); font-size:32px; font-weight:700;
+  font-style:italic; color:var(--text); margin-bottom:8px;
+}
+.login-subtitle {
+  font-size:13px; color:var(--text-muted); margin-bottom:32px;
+}
+.login-btn {
+  width:100%; padding:12px 24px; background:var(--accent);
+  color:#fff; border:none; border-radius:var(--radius);
+  cursor:pointer; font-size:14px; font-weight:600;
+  display:flex; align-items:center; justify-content:center;
+  gap:10px; transition:all .15s;
+}
+.login-btn:hover { filter:brightness(1.1); }
+.login-btn:disabled { opacity:.5; cursor:not-allowed; }
+.login-hint {
+  font-size:12px; color:var(--text-muted);
+  margin-top:20px; line-height:1.6;
+}
+
+/* ── LAYOUT ──────────────────────────────────────────── */
+.app { display:flex; height:100vh; overflow:hidden; }
+
+/* ── SIDEBAR ─────────────────────────────────────────── */
+.sidebar {
+  width:220px; flex-shrink:0; background:var(--sidebar-bg);
+  display:flex; flex-direction:column; overflow:hidden;
+  background-image: repeating-linear-gradient(
+    90deg, transparent, transparent 39px,
+    rgba(255,255,255,0.025) 39px, rgba(255,255,255,0.025) 40px
+  );
+}
+.sidebar-header {
+  padding:24px 18px 16px;
+  border-bottom:1px solid rgba(255,255,255,0.08);
+}
+.sidebar-logo {
+  font-family:var(--font-d); font-size:22px; font-weight:700; font-style:italic;
+  color:#fff; letter-spacing:-0.3px; line-height:1.2;
+}
+.sidebar-sub {
+  font-size:10px; color:var(--sidebar-text); text-transform:uppercase;
+  letter-spacing:1.5px; margin-top:2px;
+}
+.sidebar-nav { flex:1; padding:12px 0; overflow-y:auto; }
+.nav-item {
+  display:flex; align-items:center; gap:10px; padding:9px 18px;
+  color:var(--sidebar-text); font-size:13px; font-weight:500;
+  cursor:pointer; border:none; background:none; width:100%;
+  text-align:left; border-radius:0; transition:color .15s, background .15s;
+}
+.nav-item svg { opacity:.7; flex-shrink:0; }
+.nav-item:hover { color:#fff; background:rgba(255,255,255,.07); }
+.nav-item.active { color:var(--sidebar-act); background:var(--sidebar-act-bg); }
+.nav-item.active svg { opacity:1; }
+.sidebar-stats {
+  padding:16px 18px; border-top:1px solid rgba(255,255,255,.08);
+  font-size:11px; color:var(--sidebar-text);
+}
+.sidebar-stat-row { display:flex; justify-content:space-between; margin-bottom:4px; }
+.sidebar-stat-val { color:#fff; font-family:var(--font-m); font-weight:700; }
+
+.sidebar-user {
+  padding:12px 18px; border-top:1px solid rgba(255,255,255,.08); font-size:12px;
+}
+.sidebar-user-name { color:#fff; font-weight:600; margin-bottom:8px; word-break:break-word; }
+.sidebar-user-btn {
+  width:100%; background:rgba(255,255,255,.15); color:#fff;
+  border:1px solid rgba(255,255,255,.3); padding:6px 12px;
+  border-radius:4px; font-size:11px; cursor:pointer;
+  transition:background .15s;
+}
+.sidebar-user-btn:hover { background:rgba(255,80,80,.3); }
+
+/* ── MAIN ────────────────────────────────────────────── */
+.main { flex:1; overflow-y:auto; background:var(--ground); }
+.view-wrap { padding:28px 32px; max-width:1100px; }
+
+.view-header { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:24px; gap:16px; }
+.view-eyebrow { font-size:11px; text-transform:uppercase; letter-spacing:1.5px; color:var(--text-muted); margin-bottom:4px; }
+.view-title { font-family:var(--font-d); font-size:28px; font-weight:600; color:var(--text); line-height:1.2; }
+.header-actions { display:flex; gap:8px; align-items:center; flex-shrink:0; }
+
+.btn {
+  display:inline-flex; align-items:center; gap:6px; padding:8px 16px;
+  border-radius:var(--radius); font-size:13px; font-weight:500;
+  border:1px solid transparent; cursor:pointer; transition:all .15s;
+  white-space:nowrap;
+}
+.btn-primary { background:var(--accent); color:var(--accent-fg); border-color:var(--accent); }
+.btn-primary:hover { filter:brightness(1.1); }
+.btn-secondary { background:var(--surface); color:var(--text); border-color:var(--border); }
+.btn-secondary:hover { background:var(--surface2); }
+.btn-ghost { background:transparent; color:var(--text-muted); border-color:transparent; }
+.btn-ghost:hover { background:var(--surface2); color:var(--text); }
+.btn-sm { padding:5px 10px; font-size:12px; }
+
+.panel {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow);
+  margin-bottom:20px;
+}
+.panel-header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 18px; border-bottom:1px solid var(--border);
+}
+.panel-title { font-family:var(--font-d); font-size:16px; font-weight:600; }
+
+.alert {
+  display:flex; align-items:center; gap:10px; padding:12px 16px;
+  border-radius:var(--radius); margin-bottom:20px; font-size:13px;
+  border:1px solid transparent;
+}
+.alert-warning { background:var(--ok-dim); border-color:var(--ok); color:var(--ok); }
+
+.stat-grid {
+  display:grid; grid-template-columns:repeat(4,1fr); gap:14px;
+  margin-bottom:24px;
+}
+.stat-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius); padding:18px 20px;
+  box-shadow:var(--shadow);
+}
+.stat-label { font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--text-muted); margin-bottom:6px; }
+.stat-value { font-family:var(--font-m); font-size:28px; font-weight:700; color:var(--text); }
+.stat-sub { font-size:11px; color:var(--text-muted); margin-top:4px; }
+
+.empty-state {
+  text-align:center; padding:60px 24px; color:var(--text-muted);
+}
+.empty-state-small { padding:20px 18px; color:var(--text-muted); font-size:13px; }
+
+#toast {
+  position:fixed; bottom:24px; right:24px; z-index:9999;
+  background:var(--text); color:var(--ground); padding:10px 18px;
+  border-radius:var(--radius); font-size:13px; font-weight:500;
+  box-shadow:0 4px 16px rgba(0,0,0,.25); opacity:0; transition:opacity .3s;
+}
+#toast.show { opacity:1; }
+
+@media (max-width: 900px) {
+  .stat-grid { grid-template-columns:1fr 1fr; }
+}
+  </style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">Mi Biblioteca</div>
+    <div class="login-subtitle">Sincronización en la nube</div>
+    <button class="login-btn" id="google-login-btn" onclick="handleGoogleLogin()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22z"/>
+        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+      </svg>
+      Acceder con Google
+    </button>
+    <div class="login-hint">
+      ✓ Sincronización en la nube con Firestore<br>
+      ✓ Todas tus funcionalidades integradas<br>
+      ✓ Datos seguros con Google
+    </div>
+  </div>
+</div>
+
+<!-- APP (hidden until login) -->
+<div class="app" id="app-container" style="display:none">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">Mi Biblioteca</div>
+      <div class="sidebar-sub">En la nube ☁️</div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <button class="nav-item active" data-view="dashboard">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Panel principal
+      </button>
+      <button class="nav-item" data-view="catalog">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+        Catálogo
+      </button>
+      <button class="nav-item" data-view="register">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Registrar libro
+      </button>
+      <button class="nav-item" data-view="loans">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/></svg>
+        Préstamos
+      </button>
+    </nav>
+
+    <div class="sidebar-stats">
+      <div class="sidebar-stat-row"><span>Libros</span><span class="sidebar-stat-val" id="sb-total">0</span></div>
+      <div class="sidebar-stat-row"><span>Préstamos</span><span class="sidebar-stat-val" id="sb-loans">0</span></div>
+    </div>
+
+    <div class="sidebar-user">
+      <div class="sidebar-user-name" id="user-display-name">Usuario</div>
+      <button class="sidebar-user-btn" onclick="handleLogout()">Cerrar sesión</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="view-wrap" id="main-content"></div>
+  </main>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const SECTIONS = [
+  { code:'NC', name:'Novela colombiana',           color:'#1A3A6B', short:'Nov. Col.' },
+  { code:'NE', name:'Novela española',             color:'#2B4590', short:'Nov. Esp.' },
+  { code:'NL', name:'Novela latinoamericana',      color:'#2563A8', short:'Nov. Lat.' },
+  { code:'NU', name:'Novela universal',            color:'#3B7AC4', short:'Nov. Univ.' },
+  { code:'CC', name:'Cuento colombiano',           color:'#1B6B3A', short:'Cuento Col.' },
+  { code:'CE', name:'Cuento español',              color:'#2E7D52', short:'Cuento Esp.' },
+  { code:'CL', name:'Cuento latinoamericano',      color:'#28784A', short:'Cuento Lat.' },
+  { code:'CU', name:'Cuento universal',            color:'#3CA868', short:'Cuento Univ.' },
+  { code:'PC', name:'Poesía colombiana',           color:'#6B3FA0', short:'Poesía Col.' },
+  { code:'PE', name:'Poesía española',             color:'#7B4AB0', short:'Poesía Esp.' },
+  { code:'PL', name:'Poesía latinoamericana',      color:'#8B55C0', short:'Poesía Lat.' },
+  { code:'PU', name:'Poesía universal',            color:'#9B60D0', short:'Poesía Univ.' },
+  { code:'EC', name:'Ensayo colombiano',           color:'#8B4513', short:'Ensayo Col.' },
+  { code:'EL', name:'Ensayo latinoamericano',      color:'#A0522D', short:'Ensayo Lat.' },
+  { code:'EU', name:'Ensayo universal',            color:'#B8682A', short:'Ensayo Univ.' },
+  { code:'CR', name:'Crítica literaria',           color:'#7A5200', short:'Crítica Lit.' },
+  { code:'HC', name:'Historia de Colombia',        color:'#6B3A1A', short:'Hist. Col.' },
+  { code:'HU', name:'Historia universal',          color:'#8B5A3A', short:'Hist. Univ.' },
+  { code:'GV', name:'Geografía y viajes',          color:'#4A7A1A', short:'Geogr.' },
+  { code:'FI', name:'Filosofía',                   color:'#3A2B6B', short:'Filosofía' },
+  { code:'PS', name:'Psicología',                  color:'#4A3A8B', short:'Psicología' },
+  { code:'RE', name:'Religión y espiritualidad',   color:'#5A3A7B', short:'Religión' },
+  { code:'CI', name:'Ciencia',                     color:'#1A5C6B', short:'Ciencia' },
+  { code:'TC', name:'Tecnología',                  color:'#1A4A6B', short:'Tecnología' },
+  { code:'NA', name:'Naturaleza',                  color:'#2D6B3A', short:'Naturaleza' },
+  { code:'SA', name:'Salud',                       color:'#1B7A5A', short:'Salud' },
+  { code:'SO', name:'Ciencias sociales',           color:'#2D3A6B', short:'Cs. Sociales' },
+  { code:'PO', name:'Política',                    color:'#3D4A7B', short:'Política' },
+  { code:'DE', name:'Derecho',                     color:'#6B1A1A', short:'Derecho' },
+  { code:'AG', name:'Administración y gestión',    color:'#1A4A5C', short:'Admin.' },
+  { code:'EF', name:'Economía',                    color:'#006B6B', short:'Economía' },
+  { code:'ED', name:'Educación',                   color:'#2B6B3A', short:'Educación' },
+  { code:'AR', name:'Arte',                        color:'#8B3A1A', short:'Arte' },
+  { code:'MU', name:'Música y cine',               color:'#8B1A3A', short:'Música/Cine' },
+  { code:'TE', name:'Teatro',                      color:'#6B1A6B', short:'Teatro' },
+  { code:'BI', name:'Biografía',                   color:'#3D5A2B', short:'Biografía' },
+  { code:'ME', name:'Memorias',                    color:'#5A4A2B', short:'Memorias' },
+  { code:'IJ', name:'Infantil y juvenil',          color:'#8B6B00', short:'Infantil' },
+  { code:'GC', name:'Gastronomía y cocina',        color:'#8B4A00', short:'Gastron.' },
+  { code:'GO', name:'Gramática y Ortografía',      color:'#5A5A3A', short:'Gramática' },
+  { code:'MI', name:'Mitos y leyendas',            color:'#6B4A00', short:'Mitos' },
+  { code:'CO', name:'Colecciones especiales',      color:'#5A3A1A', short:'Colecciones' },
+  { code:'RV', name:'Revistas',                    color:'#3A5A6B', short:'Revistas' },
+  { code:'RF', name:'Referencia',                  color:'#5A5A5A', short:'Referencia' },
+  { code:'OT', name:'Otros',                       color:'#6B6B6B', short:'Otros' },
+];
+
+const state = {
+  view: 'dashboard',
+  userId: null,
+  books: [],
+  loans: [],
+  sections: [],
+};
+
+// ─────────────────────────────────────────────────────
+// FIREBASE FUNCTIONS
+// ─────────────────────────────────────────────────────
+async function getBooks() {
+  const { getDocs, collection, query, where } = window.firebaseReady;
+  const db = window.firebaseReady.db;
+  const q = query(collection(db, 'books'), where('userId', '==', state.userId));
+  const snap = await getDocs(q);
+  state.books = snap.docs.map(d => ({id: d.id, ...d.data()}));
+  return state.books;
+}
+
+async function addBook(data) {
+  const { setDoc, doc } = window.firebaseReady;
+  const db = window.firebaseReady.db;
+  const id = uid();
+  data.userId = state.userId;
+  data.id = id;
+  data.dateAdded = new Date().toISOString();
+  await setDoc(doc(db, 'books', id), data);
+  await getBooks();
+  return data;
+}
+
+async function updateBook(id, data) {
+  const { updateDoc, doc } = window.firebaseReady;
+  const db = window.firebaseReady.db;
+  await updateDoc(doc(db, 'books', id), data);
+  await getBooks();
+}
+
+async function deleteBook(id) {
+  const { deleteDoc, doc } = window.firebaseReady;
+  const db = window.firebaseReady.db;
+  await deleteDoc(doc(db, 'books', id));
+  await getBooks();
+}
+
+async function getLoans() {
+  const { getDocs, collection, query, where } = window.firebaseReady;
+  const db = window.firebaseReady.db;
+  const q = query(collection(db, 'loans'), where('userId', '==', state.userId));
+  const snap = await getDocs(q);
+  state.loans = snap.docs.map(d => ({id: d.id, ...d.data()}));
+  return state.loans;
+}
+
+async function addLoan(data) {
+  const { setDoc, doc } = window.firebaseReady;
+  const db = window.firebaseReady.db;
+  const id = uid();
+  data.userId = state.userId;
+  data.id = id;
+  data.created = new Date().toISOString();
+  await setDoc(doc(db, 'loans', id), data);
+  await getLoans();
+}
+
+async function updateLoan(id, data) {
+  const { updateDoc, doc } = window.firebaseReady;
+  const db = window.firebaseReady.db;
+  await updateDoc(doc(db, 'loans', id), data);
+  await getLoans();
+}
+
+// ─────────────────────────────────────────────────────
+// UTILITIES
+// ─────────────────────────────────────────────────────
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+
+function fmtDate(s) {
+  if (!s) return '—';
+  return new Date(s).toLocaleDateString('es-CO', {day:'2-digit',month:'2-digit',year:'numeric'});
+}
+
+function esc(s) {
+  if (s == null) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function toast(msg, dur=2800) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), dur);
+}
+
+function sec(code) {
+  return SECTIONS.find(s => s.code === code) || {code, name:'Desconocido', color:'#666', short:code};
+}
+
+function locCode(section, shelf, pos) {
+  if (!section) return '';
+  return `${section}-${String(shelf||'?')}-${String(pos||'??').padStart(2,'0')}`;
+}
+
+function isOverdue(loan) {
+  return loan.status === 'active' && loan.expectedReturn && new Date(loan.expectedReturn) < new Date();
+}
+
+// ─────────────────────────────────────────────────────
+// AUTH
+// ─────────────────────────────────────────────────────
+async function handleGoogleLogin() {
+  const btn = document.getElementById('google-login-btn');
+  btn.disabled = true;
+  btn.textContent = 'Conectando...';
+
+  try {
+    const { auth, GoogleAuthProvider, signInWithPopup } = window.firebaseReady;
+    const provider = new GoogleAuthProvider();
+    const result = await signInWithPopup(auth, provider);
+    state.userId = result.user.uid;
+    document.getElementById('user-display-name').textContent = result.user.displayName || 'Usuario';
+    await loadAllData();
+    showApp();
+    toast('¡Bienvenido!');
+  } catch(err) {
+    console.error(err);
+    toast('Error: ' + err.message);
+    btn.disabled = false;
+    btn.textContent = 'Acceder con Google';
+  }
+}
+
+async function handleLogout() {
+  if (!confirm('¿Cerrar sesión?')) return;
+  try {
+    const { auth, signOut } = window.firebaseReady;
+    await signOut(auth);
+    state.userId = null;
+    hideApp();
+    toast('Sesión cerrada');
+  } catch(err) {
+    toast('Error al cerrar sesión');
+  }
+}
+
+function showApp() {
+  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('app-container').style.display = 'flex';
+}
+
+function hideApp() {
+  document.getElementById('app-container').style.display = 'none';
+  document.getElementById('login-screen').classList.remove('hidden');
+}
+
+async function loadAllData() {
+  await getBooks();
+  await getLoans();
+  updateSidebarStats();
+}
+
+async function updateSidebarStats() {
+  const al = state.loans.filter(l => l.status === 'active');
+  document.getElementById('sb-total').textContent = state.books.length;
+  document.getElementById('sb-loans').textContent = al.length;
+}
+
+// ─────────────────────────────────────────────────────
+// NAVIGATION & RENDERING
+// ─────────────────────────────────────────────────────
+function navigate(view) {
+  state.view = view;
+  document.querySelectorAll('.nav-item').forEach(el =>
+    el.classList.toggle('active', el.dataset.view === view));
+  renderView();
+}
+
+async function renderView() {
+  const mc = document.getElementById('main-content');
+  let html = '';
+
+  if (state.view === 'dashboard') {
+    html = await renderDashboard();
+  } else if (state.view === 'catalog') {
+    html = await renderCatalog();
+  } else if (state.view === 'register') {
+    html = await renderRegister();
+  } else if (state.view === 'loans') {
+    html = await renderLoans();
+  }
+
+  mc.innerHTML = html;
+}
+
+// ─────────────────────────────────────────────────────
+// VIEWS
+// ─────────────────────────────────────────────────────
+async function renderDashboard() {
+  const books = state.books;
+  const loans = state.loans;
+  const al = loans.filter(l => l.status === 'active');
+  const od = al.filter(isOverdue);
+  const recent = books.slice(0,5);
+
+  return `
+  <div class="view-header">
+    <div>
+      <div class="view-eyebrow">Panel principal</div>
+      <h1 class="view-title">Mi Biblioteca ☁️</h1>
+    </div>
+    <button class="btn btn-primary" onclick="navigate('register')">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Registrar libro
+    </button>
+  </div>
+
+  ${od.length ? `<div class="alert alert-warning">
+    <strong>${od.length} préstamo${od.length>1?'s':''}</strong> con devolución vencida
+  </div>` : ''}
+
+  <div class="stat-grid">
+    <div class="stat-card"><div class="stat-label">Total libros</div><div class="stat-value">${books.length}</div><div class="stat-sub">registrados</div></div>
+    <div class="stat-card"><div class="stat-label">En préstamo</div><div class="stat-value">${al.length}</div><div class="stat-sub">${od.length?`${od.length} vencidos`:''}</div></div>
+    <div class="stat-card"><div class="stat-label">Préstamos activos</div><div class="stat-value">${loans.length}</div><div class="stat-sub">total</div></div>
+    <div class="stat-card"><div class="stat-label">Estado</div><div class="stat-value">✓</div><div class="stat-sub">sincronizado</div></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header"><h2 class="panel-title">Últimos ingresos</h2></div>
+    ${!recent.length ? `<div class="empty-state-small">Sin libros. <button style="background:none;border:none;color:var(--accent);cursor:pointer;" onclick="navigate('register')">Registra el primero.</button></div>` :
+      recent.map(b => {
+        const s = sec(b.section);
+        const loan = state.loans.find(l => l.bookId === b.id && l.status === 'active');
+        return `<div style="padding:10px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px">
+          <div style="width:28px;height:28px;border-radius:4px;background:${s.color};color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">${s.code}</div>
+          <div style="flex:1"><div style="font-size:13px;font-weight:500">${esc(b.title)}</div><div style="font-size:11px;color:var(--text-muted)">${esc(b.author||'')}</div></div>
+          ${loan?'<span style="background:var(--gold-dim);color:var(--gold);padding:2px 8px;border-radius:99px;font-size:10px;font-weight:600">Prestado</span>':''}
+        </div>`;
+      }).join('')}
+  </div>
+  `;
+}
+
+async function renderCatalog() {
+  const books = state.books;
+
+  return `
+  <div class="view-header">
+    <div>
+      <div class="view-eyebrow">Colección</div>
+      <h1 class="view-title">Catálogo <span style="background:var(--surface2);color:var(--text-muted);font-size:14px;font-family:var(--font-m);padding:2px 8px;border-radius:99px;margin-left:6px">${books.length}</span></h1>
+    </div>
+    <button class="btn btn-primary" onclick="navigate('register')">➕ Registrar libro</button>
+  </div>
+
+  <div class="panel">
+    ${!books.length ? `<div class="empty-state"><p>Tu biblioteca está vacía</p></div>` :
+      `<table style="width:100%;border-collapse:collapse">
+        <thead><tr style="background:var(--surface2);border-bottom:1px solid var(--border)"><th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase">Título</th><th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase">Autor</th><th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase">Sección</th></tr></thead>
+        <tbody>
+          ${books.map(b => {
+            const s = sec(b.section);
+            return `<tr style="border-bottom:1px solid var(--border)"><td style="padding:10px 14px">${esc(b.title)}</td><td style="padding:10px 14px">${esc(b.author||'')}</td><td style="padding:10px 14px"><span style="background:${s.color};color:#fff;padding:2px 8px;border-radius:3px;font-size:9px;font-weight:700">${s.code}</span></td></tr>`;
+          }).join('')}
+        </tbody>
+      </table>`}
+  </div>
+  `;
+}
+
+async function renderRegister() {
+  return `
+  <div class="view-header">
+    <div>
+      <div class="view-eyebrow">Nuevo libro</div>
+      <h1 class="view-title">Registrar libro</h1>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header"><h2 class="panel-title">Datos del libro</h2></div>
+    <div style="padding:20px">
+      <div style="margin-bottom:14px">
+        <label style="display:block;font-size:11px;font-weight:600;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px">Título *</label>
+        <input id="f-title" style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius);font-size:13px" placeholder="Título del libro">
+      </div>
+      <div style="margin-bottom:14px">
+        <label style="display:block;font-size:11px;font-weight:600;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px">Autor *</label>
+        <input id="f-author" style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius);font-size:13px" placeholder="Apellido, Nombre">
+      </div>
+      <div style="margin-bottom:14px">
+        <label style="display:block;font-size:11px;font-weight:600;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px">Sección *</label>
+        <select id="f-section" style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius);font-size:13px">
+          <option value="">— Seleccionar —</option>
+          ${SECTIONS.map(s => `<option value="${s.code}">${s.code} — ${s.name}</option>`).join('')}
+        </select>
+      </div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:20px" onclick="saveBook()">Guardar libro</button>
+    </div>
+  </div>
+  `;
+}
+
+async function renderLoans() {
+  const al = state.loans.filter(l => l.status === 'active');
+
+  return `
+  <div class="view-header">
+    <div>
+      <div class="view-eyebrow">Control de préstamos</div>
+      <h1 class="view-title">Préstamos</h1>
+    </div>
+  </div>
+
+  <div class="panel">
+    ${!al.length ? `<div class="empty-state"><p>No hay préstamos activos</p></div>` :
+      al.map(l => {
+        const b = state.books.find(x => x.id === l.bookId);
+        const ov = isOverdue(l);
+        return `<div style="padding:14px 18px;border-bottom:1px solid var(--border)">
+          <div style="font-weight:600;margin-bottom:8px">${b ? esc(b.title) : '(eliminado)'}</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px">${esc(l.borrowerName)}</div>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:13px;color:${ov?'var(--danger)':'var(--text-muted)'}">${fmtDate(l.expectedReturn)}</span>
+            <button class="btn btn-sm btn-secondary" onclick="returnLoan('${l.id}')">Devuelto</button>
+          </div>
+        </div>`;
+      }).join('')}
+  </div>
+  `;
+}
+
+// ─────────────────────────────────────────────────────
+// BOOK OPERATIONS
+// ─────────────────────────────────────────────────────
+async function saveBook() {
+  const title = document.getElementById('f-title')?.value.trim();
+  const author = document.getElementById('f-author')?.value.trim();
+  const section = document.getElementById('f-section')?.value;
+
+  if (!title || !author || !section) {
+    toast('Completa todos los campos obligatorios');
+    return;
+  }
+
+  await addBook({
+    title, author, section,
+    locationCode: locCode(section, '', ''),
+  });
+
+  toast('Libro registrado correctamente');
+  navigate('catalog');
+}
+
+async function returnLoan(loanId) {
+  if (!confirm('¿Confirmar devolución?')) return;
+  await updateLoan(loanId, { status: 'returned', returnDate: new Date().toISOString() });
+  toast('Devolución registrada');
+  renderView();
+}
+
+// ─────────────────────────────────────────────────────
+// AUTH STATE LISTENER
+// ─────────────────────────────────────────────────────
+window.firebaseReady.onAuthStateChanged(window.firebaseReady.auth, async (user) => {
+  if (user) {
+    state.userId = user.uid;
+    document.getElementById('user-display-name').textContent = user.displayName || 'Usuario';
+    await loadAllData();
+    showApp();
+  } else {
+    hideApp();
+  }
+});
+
+// ─────────────────────────────────────────────────────
+// NAV HANDLER
+// ─────────────────────────────────────────────────────
+document.querySelectorAll('.nav-item').forEach(el => {
+  el.addEventListener('click', () => navigate(el.dataset.view));
+});
+</script>
+
+</body>
+</html>
