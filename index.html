@@ -3057,21 +3057,13 @@ setTimeout(async () => {
   const { onAuthStateChanged, signInAnonymously } = window.firebaseReady;
   const auth = window.firebaseReady.auth;
 
-  onAuthStateChanged(auth, async (user) => {
-    if (user) {
-      appState.userId = user.uid;
-      await DB.syncBooks();
-      await DB.syncLoans();
-      await DB.syncSections();
-      renderView();
-    } else {
-      try {
-        await signInAnonymously(auth);
-      } catch(e) {
-        console.error('Error auto-login:', e);
-      }
-    }
-  });
+  // Use a fixed shared user ID so all devices see the same data
+  appState.userId = 'familia-biblioteca-compartida';
+
+  await DB.syncBooks();
+  await DB.syncLoans();
+  await DB.syncSections();
+  renderView();
 }, 500);
 
 // ─────────────────────────────────────────────────────
