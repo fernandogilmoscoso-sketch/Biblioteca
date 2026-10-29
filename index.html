@@ -1,35 +1,30 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Mi Biblioteca - Cloud Sync</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<title>Mi Biblioteca - Cloud</title>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+  import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+  import { getFirestore, collection, doc, setDoc, getDocs, updateDoc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-    import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
-    import { getFirestore, collection, doc, setDoc, getDocs, updateDoc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+  const firebaseConfig = {
+    apiKey: "AIzaSyBhhPJqDUhWVItIeCOazwHAn6dU1dfSVkk",
+    authDomain: "biblioteca-51353.firebaseapp.com",
+    projectId: "biblioteca-51353",
+    storageBucket: "biblioteca-51353.firebasestorage.app",
+    messagingSenderId: "369597092033",
+    appId: "1:369597092033:web:b8938e6ec952291a6b0440"
+  };
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyBhhPJqDUhWVItIeCOazwHAn6dU1dfSVkk",
-      authDomain: "biblioteca-51353.firebaseapp.com",
-      projectId: "biblioteca-51353",
-      storageBucket: "biblioteca-51353.firebasestorage.app",
-      messagingSenderId: "369597092033",
-      appId: "1:369597092033:web:b8938e6ec952291a6b0440"
-    };
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+  window.firebaseReady = { auth, db, signInAnonymously, onAuthStateChanged, setDoc, doc, collection, getDocs, updateDoc, deleteDoc, query, where };
+</script>
 
-    window.firebaseReady = { auth, db, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, setDoc, doc, collection, getDocs, updateDoc, deleteDoc, query, where };
-  </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=JetBrains+Mono:wght@400;500;700&display=swap">
 
-  <style>
+<style>
 /* ── TOKENS ─────────────────────────────────────────── */
 :root {
   --ground:      #F5F3EE;
@@ -45,6 +40,8 @@
   --gold-dim:    #F6EECE;
   --danger:      #8B2020;
   --danger-dim:  #FDECEA;
+  --warn:        #805C00;
+  --warn-dim:    #FFF3CD;
   --ok:          #245C2F;
   --ok-dim:      #E3F2E6;
   --sidebar-bg:  #1B4332;
@@ -57,7 +54,56 @@
   --font-u: 'DM Sans', system-ui, sans-serif;
   --font-m: 'JetBrains Mono', monospace;
 }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground:     #1C1A16;
+    --surface:    #252320;
+    --surface2:   #2E2B26;
+    --border:     #3A362F;
+    --text:       #EDE9E0;
+    --text-muted: #8A8479;
+    --accent:     #4CAF87;
+    --accent-dim: #1B3528;
+    --accent-fg:  #0B1E13;
+    --gold:       #D4A83A;
+    --gold-dim:   #2C2210;
+    --danger:     #E05555;
+    --danger-dim: #2A1010;
+    --warn:       #D4A83A;
+    --warn-dim:   #2A200A;
+    --ok:         #5CBB70;
+    --ok-dim:     #102015;
+    --sidebar-bg: #111F18;
+    --sidebar-text:#8FB8A2;
+    --sidebar-act: #EDE9E0;
+    --sidebar-act-bg: rgba(255,255,255,0.10);
+  }
+}
+:root[data-theme="dark"] {
+  --ground:     #1C1A16;
+  --surface:    #252320;
+  --surface2:   #2E2B26;
+  --border:     #3A362F;
+  --text:       #EDE9E0;
+  --text-muted: #8A8479;
+  --accent:     #4CAF87;
+  --accent-dim: #1B3528;
+  --accent-fg:  #0B1E13;
+  --gold:       #D4A83A;
+  --gold-dim:   #2C2210;
+  --danger:     #E05555;
+  --danger-dim: #2A1010;
+  --warn:       #D4A83A;
+  --warn-dim:   #2A200A;
+  --ok:         #5CBB70;
+  --ok-dim:     #102015;
+  --sidebar-bg: #111F18;
+  --sidebar-text:#8FB8A2;
+  --sidebar-act: #EDE9E0;
+  --sidebar-act-bg: rgba(255,255,255,0.10);
+}
 
+/* ── RESET ───────────────────────────────────────────── */
 *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
 html { height:100%; }
 body {
@@ -68,39 +114,6 @@ body {
 button { font-family:var(--font-u); cursor:pointer; }
 input, select, textarea { font-family:var(--font-u); }
 a { color:var(--accent); text-decoration:none; }
-
-/* ── LOGIN SCREEN ───────────────────────────────────── */
-#login-screen {
-  display:flex; align-items:center; justify-content:center; height:100vh;
-  position:fixed; inset:0; z-index:9999; background:var(--ground);
-}
-#login-screen.hidden { display:none; }
-
-.login-box {
-  background:var(--surface); padding:40px 36px; border-radius:12px;
-  box-shadow:var(--shadow); border:1px solid var(--border);
-  max-width:360px; width:100%; text-align:center;
-}
-.login-logo {
-  font-family:var(--font-d); font-size:32px; font-weight:700;
-  font-style:italic; color:var(--text); margin-bottom:8px;
-}
-.login-subtitle {
-  font-size:13px; color:var(--text-muted); margin-bottom:32px;
-}
-.login-btn {
-  width:100%; padding:12px 24px; background:var(--accent);
-  color:#fff; border:none; border-radius:var(--radius);
-  cursor:pointer; font-size:14px; font-weight:600;
-  display:flex; align-items:center; justify-content:center;
-  gap:10px; transition:all .15s;
-}
-.login-btn:hover { filter:brightness(1.1); }
-.login-btn:disabled { opacity:.5; cursor:not-allowed; }
-.login-hint {
-  font-size:12px; color:var(--text-muted);
-  margin-top:20px; line-height:1.6;
-}
 
 /* ── LAYOUT ──────────────────────────────────────────── */
 .app { display:flex; height:100vh; overflow:hidden; }
@@ -137,6 +150,7 @@ a { color:var(--accent); text-decoration:none; }
 .nav-item:hover { color:#fff; background:rgba(255,255,255,.07); }
 .nav-item.active { color:var(--sidebar-act); background:var(--sidebar-act-bg); }
 .nav-item.active svg { opacity:1; }
+.nav-sep { height:1px; background:rgba(255,255,255,.07); margin:8px 18px; }
 .sidebar-stats {
   padding:16px 18px; border-top:1px solid rgba(255,255,255,.08);
   font-size:11px; color:var(--sidebar-text);
@@ -144,27 +158,26 @@ a { color:var(--accent); text-decoration:none; }
 .sidebar-stat-row { display:flex; justify-content:space-between; margin-bottom:4px; }
 .sidebar-stat-val { color:#fff; font-family:var(--font-m); font-weight:700; }
 
-.sidebar-user {
-  padding:12px 18px; border-top:1px solid rgba(255,255,255,.08); font-size:12px;
-}
-.sidebar-user-name { color:#fff; font-weight:600; margin-bottom:8px; word-break:break-word; }
-.sidebar-user-btn {
-  width:100%; background:rgba(255,255,255,.15); color:#fff;
-  border:1px solid rgba(255,255,255,.3); padding:6px 12px;
-  border-radius:4px; font-size:11px; cursor:pointer;
-  transition:background .15s;
-}
-.sidebar-user-btn:hover { background:rgba(255,80,80,.3); }
-
 /* ── MAIN ────────────────────────────────────────────── */
 .main { flex:1; overflow-y:auto; background:var(--ground); }
 .view-wrap { padding:28px 32px; max-width:1100px; }
 
-.view-header { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:24px; gap:16px; }
-.view-eyebrow { font-size:11px; text-transform:uppercase; letter-spacing:1.5px; color:var(--text-muted); margin-bottom:4px; }
-.view-title { font-family:var(--font-d); font-size:28px; font-weight:600; color:var(--text); line-height:1.2; }
+/* ── VIEW HEADER ─────────────────────────────────────── */
+.view-header {
+  display:flex; align-items:flex-start; justify-content:space-between;
+  margin-bottom:24px; gap:16px;
+}
+.view-eyebrow {
+  font-size:11px; text-transform:uppercase; letter-spacing:1.5px;
+  color:var(--text-muted); margin-bottom:4px;
+}
+.view-title {
+  font-family:var(--font-d); font-size:28px; font-weight:600;
+  color:var(--text); line-height:1.2;
+}
 .header-actions { display:flex; gap:8px; align-items:center; flex-shrink:0; }
 
+/* ── BUTTONS ─────────────────────────────────────────── */
 .btn {
   display:inline-flex; align-items:center; gap:6px; padding:8px 16px;
   border-radius:var(--radius); font-size:13px; font-weight:500;
@@ -177,8 +190,39 @@ a { color:var(--accent); text-decoration:none; }
 .btn-secondary:hover { background:var(--surface2); }
 .btn-ghost { background:transparent; color:var(--text-muted); border-color:transparent; }
 .btn-ghost:hover { background:var(--surface2); color:var(--text); }
+.btn-danger { background:var(--danger); color:#fff; border-color:var(--danger); }
 .btn-sm { padding:5px 10px; font-size:12px; }
+.btn-full { width:100%; justify-content:center; }
+.link-btn { background:none; border:none; color:var(--accent); cursor:pointer; padding:0; font-size:inherit; }
 
+/* ── ALERT ───────────────────────────────────────────── */
+.alert {
+  display:flex; align-items:center; gap:10px; padding:12px 16px;
+  border-radius:var(--radius); margin-bottom:20px; font-size:13px;
+  border:1px solid transparent;
+}
+.alert-warning { background:var(--warn-dim); border-color:var(--warn); color:var(--warn); }
+.alert-warning strong { color:var(--warn); }
+
+/* ── STAT GRID ───────────────────────────────────────── */
+.stat-grid {
+  display:grid; grid-template-columns:repeat(4,1fr); gap:14px;
+  margin-bottom:24px;
+}
+.stat-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius); padding:18px 20px;
+  box-shadow:var(--shadow);
+}
+.stat-label { font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--text-muted); margin-bottom:6px; }
+.stat-value { font-family:var(--font-m); font-size:28px; font-weight:700; color:var(--text); line-height:1; font-variant-numeric:tabular-nums; }
+.stat-value.stat-warn { color:var(--danger); }
+.stat-sub { font-size:11px; color:var(--text-muted); margin-top:4px; }
+
+/* ── TWO-COL ─────────────────────────────────────────── */
+.two-col { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px; }
+
+/* ── PANEL ───────────────────────────────────────────── */
 .panel {
   background:var(--surface); border:1px solid var(--border);
   border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow);
@@ -190,52 +234,474 @@ a { color:var(--accent); text-decoration:none; }
 }
 .panel-title { font-family:var(--font-d); font-size:16px; font-weight:600; }
 
-.alert {
-  display:flex; align-items:center; gap:10px; padding:12px 16px;
-  border-radius:var(--radius); margin-bottom:20px; font-size:13px;
-  border:1px solid transparent;
+/* ── MINI BOOK ROW ───────────────────────────────────── */
+.mini-book-row {
+  display:flex; align-items:center; gap:12px; padding:10px 18px;
+  border-bottom:1px solid var(--border);
 }
-.alert-warning { background:var(--ok-dim); border-color:var(--ok); color:var(--ok); }
+.mini-book-row:last-child { border-bottom:none; }
+.mini-section-badge {
+  width:28px; height:28px; border-radius:4px; display:flex;
+  align-items:center; justify-content:center; font-size:11px;
+  font-weight:700; color:#fff; flex-shrink:0; font-family:var(--font-m);
+}
+.mini-book-info { flex:1; min-width:0; }
+.mini-book-title { font-size:13px; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.mini-book-author { font-size:11px; color:var(--text-muted); }
+.mini-book-meta { display:flex; align-items:center; gap:8px; flex-shrink:0; }
+.location-code { font-family:var(--font-m); font-size:11px; color:var(--text-muted); }
 
-.stat-grid {
-  display:grid; grid-template-columns:repeat(4,1fr); gap:14px;
-  margin-bottom:24px;
+/* ── SECTION STAT ────────────────────────────────────── */
+.section-stat-row {
+  display:flex; align-items:center; gap:12px; padding:10px 18px;
+  border-bottom:1px solid var(--border);
 }
-.stat-card {
-  background:var(--surface); border:1px solid var(--border);
-  border-radius:var(--radius); padding:18px 20px;
-  box-shadow:var(--shadow);
+.section-stat-row:last-child { border-bottom:none; }
+.section-badge {
+  width:28px; height:28px; border-radius:4px; display:flex;
+  align-items:center; justify-content:center; font-size:11px;
+  font-weight:700; color:#fff; flex-shrink:0; font-family:var(--font-m);
 }
-.stat-label { font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--text-muted); margin-bottom:6px; }
-.stat-value { font-family:var(--font-m); font-size:28px; font-weight:700; color:var(--text); }
-.stat-sub { font-size:11px; color:var(--text-muted); margin-top:4px; }
+.section-stat-info { flex:1; }
+.section-stat-name { font-size:12px; margin-bottom:4px; }
+.section-stat-bar-wrap { height:4px; background:var(--surface2); border-radius:2px; overflow:hidden; }
+.section-stat-bar { height:100%; border-radius:2px; transition:width .4s; }
+.section-stat-count { font-family:var(--font-m); font-size:13px; font-weight:600; }
 
+/* ── BADGES ──────────────────────────────────────────── */
+.badge {
+  display:inline-flex; align-items:center; padding:2px 8px; border-radius:99px;
+  font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:.5px;
+}
+.badge-available { background:var(--ok-dim); color:var(--ok); }
+.badge-loan { background:var(--gold-dim); color:var(--gold); }
+.badge-overdue { background:var(--danger-dim); color:var(--danger); }
+.count-badge {
+  background:var(--surface2); color:var(--text-muted);
+  font-size:14px; font-family:var(--font-m); padding:2px 8px;
+  border-radius:99px; vertical-align:middle; margin-left:6px;
+}
+
+/* ── CATALOG TOOLBAR ─────────────────────────────────── */
+.catalog-toolbar {
+  display:flex; gap:10px; margin-bottom:16px; align-items:center; flex-wrap:wrap;
+}
+.search-wrap { position:relative; flex:1; min-width:200px; }
+.search-icon { position:absolute; left:10px; top:50%; transform:translateY(-50%); color:var(--text-muted); pointer-events:none; }
+.search-input {
+  width:100%; padding:8px 12px 8px 34px; border:1px solid var(--border);
+  border-radius:var(--radius); background:var(--surface); color:var(--text);
+  font-size:13px; outline:none; transition:border-color .15s;
+}
+.search-input:focus { border-color:var(--accent); }
+.filter-select {
+  padding:8px 12px; border:1px solid var(--border); border-radius:var(--radius);
+  background:var(--surface); color:var(--text); font-size:13px; outline:none;
+  cursor:pointer;
+}
+
+/* ── TABLE ───────────────────────────────────────────── */
+.table-wrap { overflow-x:auto; }
+.data-table { width:100%; border-collapse:collapse; }
+.data-table th {
+  text-align:left; padding:10px 14px; font-size:11px; font-weight:600;
+  text-transform:uppercase; letter-spacing:.8px; color:var(--text-muted);
+  background:var(--surface2); border-bottom:1px solid var(--border);
+  white-space:nowrap;
+}
+.data-table td {
+  padding:10px 14px; border-bottom:1px solid var(--border);
+  font-size:13px; vertical-align:middle;
+}
+.data-table tr:last-child td { border-bottom:none; }
+.data-table tr.row-loaned td { background:var(--gold-dim); }
+.data-table tr:hover td { background:var(--surface2); }
+.data-table tr.row-loaned:hover td { background:#f0e8c8; }
+.title-cell { font-weight:500; max-width:200px; }
+.isbn-cell { font-size:10px; color:var(--text-muted); font-family:var(--font-m); }
+.section-badge-sm {
+  display:inline-flex; align-items:center; justify-content:center;
+  min-width:28px; height:20px; border-radius:3px; font-size:9px; font-weight:700;
+  color:#fff; font-family:var(--font-m); vertical-align:middle; margin-right:4px;
+  padding:0 3px; letter-spacing:.3px;
+}
+.section-name-sm { font-size:11px; color:var(--text-muted); }
+.mono { font-family:var(--font-m); font-size:12px; }
+.text-danger { color:var(--danger); }
+
+/* ── ACTION BUTTONS ──────────────────────────────────── */
+.action-group { display:flex; gap:4px; align-items:center; }
+.action-btn {
+  width:28px; height:28px; display:inline-flex; align-items:center; justify-content:center;
+  border:1px solid var(--border); border-radius:4px; background:var(--surface);
+  color:var(--text-muted); cursor:pointer; transition:all .15s;
+}
+.action-btn:hover { background:var(--surface2); color:var(--text); border-color:var(--accent); }
+.action-btn.action-delete:hover { background:var(--danger-dim); color:var(--danger); border-color:var(--danger); }
+.action-btn.action-return:hover { background:var(--ok-dim); color:var(--ok); border-color:var(--ok); }
+
+/* ── EMPTY STATE ─────────────────────────────────────── */
 .empty-state {
   text-align:center; padding:60px 24px; color:var(--text-muted);
 }
+.empty-icon { margin-bottom:16px; opacity:.3; }
+.empty-state p { margin-bottom:16px; font-size:15px; }
 .empty-state-small { padding:20px 18px; color:var(--text-muted); font-size:13px; }
 
+/* ── FORM ────────────────────────────────────────────── */
+.form-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius); box-shadow:var(--shadow);
+}
+.form-section { padding:20px 24px; border-bottom:1px solid var(--border); }
+.form-section:last-child { border-bottom:none; }
+.form-section-title {
+  font-family:var(--font-d); font-size:15px; font-weight:600; margin-bottom:14px;
+  padding-bottom:8px; border-bottom:1px solid var(--border); color:var(--text);
+}
+.form-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.form-grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
+.form-field { display:flex; flex-direction:column; gap:5px; }
+.form-field.full-width { grid-column:1/-1; }
+.form-label {
+  font-size:11px; font-weight:600; text-transform:uppercase;
+  letter-spacing:.8px; color:var(--text-muted);
+}
+.form-label .req { color:var(--danger); }
+.form-input, .form-select, .form-textarea {
+  padding:8px 12px; border:1px solid var(--border); border-radius:var(--radius);
+  background:var(--surface); color:var(--text); font-size:13px; outline:none;
+  transition:border-color .15s; width:100%;
+}
+.form-input:focus, .form-select:focus, .form-textarea:focus { border-color:var(--accent); }
+.form-textarea { resize:vertical; min-height:70px; }
+.form-hint { font-size:11px; color:var(--text-muted); }
+.location-preview {
+  background:var(--accent-dim); border:1px solid var(--accent);
+  border-radius:var(--radius); padding:8px 14px; font-family:var(--font-m);
+  font-size:18px; font-weight:700; color:var(--accent); letter-spacing:1px;
+}
+.isbn-row { display:flex; gap:8px; }
+.isbn-row .form-input { flex:1; }
+.isbn-status { font-size:12px; padding:4px 0; min-height:20px; }
+.isbn-status.ok { color:var(--ok); }
+.isbn-status.err { color:var(--danger); }
+.isbn-status.loading { color:var(--text-muted); }
+.photo-upload-area {
+  border:2px dashed var(--border); border-radius:var(--radius);
+  padding:20px; text-align:center; cursor:pointer; transition:all .15s;
+  background:var(--surface2);
+}
+.photo-upload-area:hover { border-color:var(--accent); background:var(--accent-dim); }
+.photo-preview { max-width:100px; max-height:140px; border-radius:4px; margin:0 auto 8px; display:block; }
+.form-actions {
+  display:flex; gap:10px; justify-content:flex-end; padding:16px 24px;
+  border-top:1px solid var(--border);
+}
+
+/* ── LOANS ───────────────────────────────────────────── */
+.loan-tabs { display:flex; gap:2px; margin-bottom:16px; background:var(--surface2); border-radius:var(--radius); padding:3px; width:fit-content; }
+.loan-tab {
+  padding:6px 16px; border-radius:4px; font-size:13px; font-weight:500;
+  border:none; background:transparent; color:var(--text-muted); cursor:pointer; transition:all .15s;
+}
+.loan-tab.active { background:var(--surface); color:var(--text); box-shadow:0 1px 2px rgba(0,0,0,.08); }
+.loan-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius); margin-bottom:12px; overflow:hidden;
+  box-shadow:var(--shadow);
+}
+.loan-card.overdue { border-color:var(--danger); }
+.loan-card-header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 18px; border-bottom:1px solid var(--border);
+}
+.loan-book-title { font-weight:600; font-size:15px; }
+.loan-book-author { font-size:12px; color:var(--text-muted); }
+.loan-card-body {
+  display:grid; grid-template-columns:repeat(3,1fr); gap:0;
+  border-bottom:1px solid var(--border);
+}
+.loan-info-block { padding:12px 18px; border-right:1px solid var(--border); }
+.loan-info-block:last-child { border-right:none; }
+.loan-info-label { font-size:10px; text-transform:uppercase; letter-spacing:.8px; color:var(--text-muted); margin-bottom:2px; }
+.loan-info-val { font-size:13px; font-weight:500; }
+.loan-card-foot { display:flex; gap:8px; padding:10px 18px; }
+
+/* ── SECTIONS GRID ───────────────────────────────────── */
+.sections-grid {
+  display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-top:4px;
+}
+.section-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius); overflow:hidden; cursor:pointer;
+  box-shadow:var(--shadow); transition:transform .15s, box-shadow .15s;
+}
+.section-card:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(0,0,0,.12); }
+.section-card-top {
+  padding:16px 18px 12px; display:flex; align-items:flex-start; gap:12px;
+}
+.section-code-big {
+  min-width:48px; height:44px; border-radius:6px; display:flex;
+  align-items:center; justify-content:center; font-family:var(--font-m);
+  font-size:14px; font-weight:700; color:#fff; flex-shrink:0; padding:0 6px;
+}
+.section-card-name { font-size:13px; font-weight:600; flex:1; line-height:1.3; }
+.section-card-count { font-family:var(--font-m); font-size:12px; color:var(--text-muted); margin-top:2px; }
+.section-card-bar {
+  height:3px; margin:0 18px 14px; border-radius:2px; background:var(--surface2);
+  overflow:hidden;
+}
+.section-card-bar-fill { height:100%; border-radius:2px; }
+.section-card-actions {
+  display:flex; gap:6px; padding:0 14px 12px; justify-content:flex-end;
+}
+.btn-sec-edit, .btn-sec-del {
+  font-size:11px; padding:3px 10px; border-radius:4px; border:none; cursor:pointer;
+  font-family:var(--font-u); font-weight:500; transition:opacity .15s;
+}
+.btn-sec-edit { background:var(--surface2); color:var(--text); }
+.btn-sec-edit:hover { opacity:.75; }
+.btn-sec-del  { background:var(--danger-dim); color:var(--danger); }
+.btn-sec-del:hover { opacity:.75; }
+.sec-badge-custom {
+  font-size:9px; font-weight:700; letter-spacing:.5px; text-transform:uppercase;
+  background:var(--gold-dim); color:var(--gold); border-radius:3px;
+  padding:1px 5px; margin-left:6px; vertical-align:middle;
+}
+.sec-badge-default {
+  font-size:9px; font-weight:600; letter-spacing:.3px;
+  color:var(--text-muted); margin-left:6px; vertical-align:middle;
+}
+
+/* ── PRINT VIEW ──────────────────────────────────────── */
+.print-selector { display:flex; gap:10px; margin-bottom:20px; align-items:center; }
+.print-actions { display:flex; gap:10px; margin-top:16px; }
+.print-preview-wrap {
+  display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:8px;
+}
+
+/* Ficha de control */
+.control-card {
+  background:#fff; border:1px solid #ccc; border-radius:4px;
+  width:100%; font-family:Arial, sans-serif; color:#000;
+  box-shadow:var(--shadow);
+}
+.cc-header {
+  display:flex; justify-content:space-between; align-items:flex-start;
+  padding:10px 14px; background:#1B4332; color:#fff;
+}
+.cc-library { font-size:13px; font-weight:bold; font-style:italic; }
+.cc-loc { font-family:var(--font-m); font-size:20px; font-weight:900; letter-spacing:1px; }
+.cc-body { padding:10px 14px; }
+.cc-row { margin-bottom:6px; font-size:12px; }
+.cc-key { font-weight:bold; font-size:10px; text-transform:uppercase; color:#555; }
+.cc-table { width:100%; border-collapse:collapse; margin-top:10px; font-size:11px; }
+.cc-table th {
+  background:#1B4332; color:#fff; padding:5px 6px; text-align:left;
+  font-size:10px; text-transform:uppercase;
+}
+.cc-table td { border:1px solid #ccc; padding:5px 6px; height:22px; }
+.cc-table td:first-child { background:#f5f5f5; }
+
+/* Sticker */
+.sticker-wrap { display:flex; flex-direction:column; gap:16px; }
+.sticker {
+  background:#fff; border:2px solid #ccc; border-radius:4px;
+  font-family:Arial, sans-serif; color:#000; box-shadow:var(--shadow);
+  overflow:hidden;
+}
+.sticker-spine {
+  width:70px; display:flex; flex-direction:column; align-items:center;
+  padding:8px 4px;
+}
+.sticker-spine .s-sec {
+  width:100%; text-align:center; padding:6px 0; font-size:14px;
+  font-weight:900; color:#fff; margin-bottom:4px;
+  font-family:var(--font-m);
+}
+.sticker-spine .s-code { font-family:var(--font-m); font-size:11px; font-weight:700; text-align:center; line-height:1.3; letter-spacing:.5px; }
+.sticker-spine .s-author { font-size:9px; text-align:center; margin-top:6px; font-weight:bold; border-top:1px solid #ccc; padding-top:4px; width:100%; }
+.sticker-pocket {
+  width:160px; padding:0;
+}
+.sticker-pocket .sp-top {
+  padding:8px 10px; color:#fff;
+}
+.sticker-pocket .sp-section-name { font-size:9px; text-transform:uppercase; letter-spacing:.5px; opacity:.85; }
+.sticker-pocket .sp-code { font-family:var(--font-m); font-size:22px; font-weight:900; letter-spacing:1px; }
+.sticker-pocket .sp-body { padding:8px 10px; }
+.sticker-pocket .sp-author { font-size:10px; font-weight:bold; text-transform:uppercase; letter-spacing:.5px; }
+.sticker-pocket .sp-title { font-size:11px; margin-top:2px; color:#333; }
+.sticker-pocket .sp-lib { font-size:9px; color:#888; margin-top:6px; font-style:italic; }
+
+/* ── MODAL ───────────────────────────────────────────── */
+.modal { position:fixed; inset:0; z-index:999; display:flex; align-items:center; justify-content:center; }
+.modal-backdrop { position:absolute; inset:0; background:rgba(0,0,0,.5); backdrop-filter:blur(2px); }
+.modal-box {
+  position:relative; z-index:1; background:var(--surface); border-radius:var(--radius);
+  width:100%; max-width:480px; box-shadow:0 20px 60px rgba(0,0,0,.3);
+  border:1px solid var(--border);
+}
+.modal-header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:16px 20px; border-bottom:1px solid var(--border);
+}
+.modal-title { font-family:var(--font-d); font-size:18px; font-weight:600; }
+.modal-close {
+  border:none; background:none; font-size:22px; cursor:pointer;
+  color:var(--text-muted); line-height:1; padding:2px 6px;
+}
+.modal-close:hover { color:var(--text); }
+.modal-body { padding:20px; }
+.modal-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:16px; }
+
+/* ── AI SCAN ─────────────────────────────────────────── */
+.btn-ai-scan {
+  display:inline-flex; align-items:center; gap:6px; padding:8px 14px;
+  border-radius:var(--radius); border:none; cursor:pointer; font-size:13px;
+  font-weight:600; font-family:var(--font-s);
+  background:linear-gradient(135deg,#4f2d9e 0%,#1a8fa0 100%);
+  color:#fff; transition:opacity .15s, transform .1s;
+}
+.btn-ai-scan:hover { opacity:.88; }
+.btn-ai-scan:active { transform:scale(.97); }
+.btn-ai-scan svg { flex-shrink:0; }
+.ai-drop-zone {
+  border:2px dashed var(--border); border-radius:8px; padding:28px 20px;
+  text-align:center; cursor:pointer; transition:border-color .15s, background .15s;
+  background:var(--surface2);
+}
+.ai-drop-zone:hover, .ai-drop-zone.drag-over { border-color:var(--accent); background:var(--accent-dim); }
+.ai-drop-zone img { max-height:200px; max-width:100%; border-radius:6px; object-fit:contain; }
+.ai-result-grid {
+  display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:12px;
+}
+.ai-result-field {
+  background:var(--surface2); border-radius:6px; padding:10px 12px;
+  border-left:3px solid var(--accent);
+}
+.ai-result-label { font-size:10px; font-weight:700; text-transform:uppercase;
+  letter-spacing:.6px; color:var(--text-muted); margin-bottom:3px; }
+.ai-result-value { font-size:13px; color:var(--text); word-break:break-word; }
+.ai-result-value.ai-null { color:var(--text-muted); font-style:italic; }
+.ai-key-row { display:flex; align-items:center; gap:8px; }
+.ai-key-row input { flex:1; }
+.ai-spinner {
+  display:flex; flex-direction:column; align-items:center; gap:16px;
+  padding:36px 20px; text-align:center;
+}
+.ai-spinner-ring {
+  width:48px; height:48px; border:4px solid var(--border);
+  border-top-color:var(--accent); border-radius:50%;
+  animation:spin .8s linear infinite;
+}
+@keyframes spin { to { transform:rotate(360deg); } }
+.action-btn.action-ai { color:#7b4ff0; }
+.action-btn.action-ai:hover { background:#f0eaff; color:#5a2dd1; }
+
+/* ── TOAST ───────────────────────────────────────────── */
 #toast {
   position:fixed; bottom:24px; right:24px; z-index:9999;
   background:var(--text); color:var(--ground); padding:10px 18px;
   border-radius:var(--radius); font-size:13px; font-weight:500;
   box-shadow:0 4px 16px rgba(0,0,0,.25); opacity:0; transition:opacity .3s;
+  pointer-events:none;
 }
 #toast.show { opacity:1; }
 
+/* ── BULK SELECT ─────────────────────────────────────── */
+.row-check { width:36px; padding:0 0 0 14px !important; }
+.row-check input[type=checkbox] { width:15px; height:15px; cursor:pointer; accent-color:var(--accent); }
+thead .row-check input[type=checkbox] { accent-color:var(--accent-fg); }
+.data-table tr.selected td { background:var(--accent-dim) !important; }
+.bulk-bar {
+  position:sticky; bottom:0; left:0; right:0;
+  background:var(--accent); color:var(--accent-fg);
+  display:flex; align-items:center; justify-content:space-between;
+  padding:12px 20px; border-radius:0 0 var(--radius) var(--radius);
+  box-shadow:0 -4px 20px rgba(0,0,0,.2); gap:12px;
+  transition:opacity .2s, transform .2s;
+}
+.bulk-bar.hidden { opacity:0; pointer-events:none; transform:translateY(8px); }
+.bulk-count { font-weight:700; font-size:14px; }
+.bulk-actions { display:flex; gap:8px; align-items:center; }
+.btn-bulk-del {
+  background:rgba(255,255,255,.15); color:#fff; border:1px solid rgba(255,255,255,.3);
+  padding:7px 14px; border-radius:var(--radius); font-size:13px; font-weight:600;
+  cursor:pointer; display:flex; align-items:center; gap:6px; transition:background .15s;
+}
+.btn-bulk-del:hover { background:rgba(255,80,80,.35); border-color:rgba(255,80,80,.5); }
+.btn-bulk-clr {
+  background:transparent; color:rgba(255,255,255,.8); border:1px solid rgba(255,255,255,.2);
+  padding:7px 12px; border-radius:var(--radius); font-size:13px; cursor:pointer; transition:all .15s;
+}
+.btn-bulk-clr:hover { background:rgba(255,255,255,.1); color:#fff; }
+/* Confirmation modal */
+.confirm-input {
+  width:100%; padding:10px 14px; font-family:var(--font-m); font-size:16px; font-weight:700;
+  letter-spacing:2px; text-transform:uppercase; text-align:center;
+  border:2px solid var(--border); border-radius:var(--radius);
+  background:var(--surface); color:var(--text); outline:none; transition:border-color .15s;
+  margin-top:8px;
+}
+.confirm-input:focus { border-color:var(--danger); }
+.confirm-input.valid { border-color:var(--ok); background:var(--ok-dim); }
+
+/* ── IMPORT MODAL ────────────────────────────────────── */
+.import-field-tags { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px; }
+.field-req  { background:var(--danger-dim); color:var(--danger); font-size:11px; font-weight:700; padding:3px 9px; border-radius:99px; }
+.field-opt  { background:var(--ok-dim); color:var(--ok); font-size:11px; font-weight:600; padding:3px 9px; border-radius:99px; }
+.field-grid {
+  display:grid; grid-template-columns:1fr 1fr; gap:0;
+  border:1px solid var(--border); border-radius:var(--radius); overflow:hidden;
+  font-size:12px; margin-bottom:14px;
+}
+.field-row { display:contents; }
+.field-row > div {
+  padding:7px 12px; border-bottom:1px solid var(--border); background:var(--surface);
+}
+.field-row:last-child > div { border-bottom:none; }
+.field-row > div:first-child { background:var(--surface2); font-weight:600; }
+.import-preview-table { width:100%; border-collapse:collapse; font-size:11px; }
+.import-preview-table th { background:var(--surface2); padding:5px 8px; text-align:left; border-bottom:1px solid var(--border); white-space:nowrap; }
+.import-preview-table td { padding:5px 8px; border-bottom:1px solid var(--border); max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.import-col-map { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; font-size:12px; }
+.col-chip { padding:3px 8px; border-radius:4px; font-size:11px; }
+.col-chip.ok  { background:var(--ok-dim); color:var(--ok); }
+.col-chip.err { background:var(--danger-dim); color:var(--danger); }
+.col-chip.warn { background:var(--warn-dim); color:var(--warn); }
+
+/* ── PRINT CSS ───────────────────────────────────────── */
+@media print {
+  * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
+  .app, .sidebar, .main { all:unset !important; }
+  body { font-family:Arial, sans-serif; background:#fff !important; }
+  .no-print { display:none !important; }
+  .print-only { display:block !important; }
+  .print-page { page-break-after:always; }
+}
+.print-only { display:none; }
+
+/* ── MISC ────────────────────────────────────────────── */
 @media (max-width: 900px) {
   .stat-grid { grid-template-columns:1fr 1fr; }
+  .two-col { grid-template-columns:1fr; }
+  .sections-grid { grid-template-columns:1fr 1fr; }
+  .print-preview-wrap { grid-template-columns:1fr; }
 }
-  </style>
-</head>
-<body>
+</style>
 
-<!-- APP -->
-<div class="app" id="app-container" style="display:flex">
+<!-- ════════════════════════════════════════════════════
+     HTML STRUCTURE
+═════════════════════════════════════════════════════ -->
+<div class="app" id="app">
+
+  <!-- SIDEBAR -->
   <aside class="sidebar">
     <div class="sidebar-header">
       <div class="sidebar-logo">Mi Biblioteca</div>
-      <div class="sidebar-sub" id="sync-status">Local 💾</div>
+      <div class="sidebar-sub">Biblioteca Personal</div>
     </div>
 
     <nav class="sidebar-nav">
@@ -251,69 +717,223 @@ a { color:var(--accent); text-decoration:none; }
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         Registrar libro
       </button>
+      <div class="nav-sep"></div>
       <button class="nav-item" data-view="loans">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/></svg>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
         Préstamos
+      </button>
+      <button class="nav-item" data-view="sections">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
+        Secciones
+      </button>
+      <button class="nav-item" data-view="print">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        Imprimir fichas
       </button>
     </nav>
 
     <div class="sidebar-stats">
       <div class="sidebar-stat-row"><span>Libros</span><span class="sidebar-stat-val" id="sb-total">0</span></div>
-      <div class="sidebar-stat-row"><span>Préstamos</span><span class="sidebar-stat-val" id="sb-loans">0</span></div>
-    </div>
-
-    <div class="sidebar-user">
-      <div class="sidebar-user-name" id="user-display-name">Sin cuenta</div>
-      <button class="sidebar-user-btn" id="auth-btn" onclick="toggleAuth()">Acceder con Google</button>
+      <div class="sidebar-stat-row"><span>Prestados</span><span class="sidebar-stat-val" id="sb-loans">0</span></div>
+      <div class="sidebar-stat-row"><span>Vencidos</span><span class="sidebar-stat-val" id="sb-overdue">0</span></div>
     </div>
   </aside>
 
+  <!-- MAIN CONTENT -->
   <main class="main">
     <div class="view-wrap" id="main-content"></div>
   </main>
 </div>
 
+<!-- LOAN MODAL -->
+<div id="loan-modal" class="modal" style="display:none">
+  <div class="modal-backdrop" onclick="closeLoanModal()"></div>
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2 class="modal-title">Registrar Préstamo</h2>
+      <button class="modal-close" onclick="closeLoanModal()">×</button>
+    </div>
+    <div class="modal-body" id="loan-modal-body"></div>
+  </div>
+</div>
+
+<!-- IMPORT MODAL -->
+<div id="import-modal" class="modal" style="display:none">
+  <div class="modal-backdrop" onclick="closeImportModal()"></div>
+  <div class="modal-box" style="max-width:620px">
+    <div class="modal-header">
+      <h2 class="modal-title">Importar libros desde Excel</h2>
+      <button class="modal-close" onclick="closeImportModal()">×</button>
+    </div>
+    <div class="modal-body" style="max-height:70vh;overflow-y:auto" id="import-state"></div>
+  </div>
+</div>
+
+<!-- BULK DELETE MODAL -->
+<div id="bulk-del-modal" class="modal" style="display:none">
+  <div class="modal-backdrop" onclick="closeBulkDeleteModal()"></div>
+  <div class="modal-box" style="max-width:560px">
+    <div class="modal-header" style="background:var(--danger);color:#fff">
+      <h2 class="modal-title" style="color:#fff">⚠ Eliminar libros seleccionados</h2>
+      <button class="modal-close" style="color:#fff" onclick="closeBulkDeleteModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <p style="margin:0 0 12px">Estás a punto de eliminar <strong id="bdm-count"></strong>. Esta acción <strong>no se puede deshacer</strong>.</p>
+      <div id="bdm-list" style="max-height:220px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius);padding:8px 12px;font-size:13px;margin-bottom:16px;background:var(--surface2)"></div>
+      <p style="margin:0 0 8px;font-size:13px;color:var(--text-muted)">Para confirmar, escribe <strong style="color:var(--danger);font-family:var(--font-m)">ELIMINAR</strong> en el campo de abajo y pulsa el botón.</p>
+      <input id="bdm-confirm-input" class="confirm-input" type="text" placeholder="Escribe ELIMINAR aquí" autocomplete="off" oninput="validateBulkConfirm()" onpaste="return false">
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px">
+        <button class="btn btn-secondary" onclick="closeBulkDeleteModal()">Cancelar</button>
+        <button id="bdm-confirm-btn" class="btn" style="background:var(--danger);color:#fff;opacity:.45;cursor:not-allowed" disabled onclick="confirmBulkDelete()">Eliminar definitivamente</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION MODAL -->
+<div id="sec-modal" class="modal" style="display:none">
+  <div class="modal-backdrop" onclick="closeSectionModal()"></div>
+  <div class="modal-box" style="max-width:460px">
+    <div class="modal-header">
+      <h2 class="modal-title" id="sec-modal-title">Nueva sección</h2>
+      <button class="modal-close" onclick="closeSectionModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:grid;grid-template-columns:1fr 2fr;gap:14px;margin-bottom:14px">
+        <div class="form-field">
+          <label class="form-label">Código <span style="color:var(--danger)">*</span></label>
+          <input id="sec-code" class="form-input" type="text" maxlength="3" placeholder="P" autocomplete="off"
+                 style="font-family:var(--font-m);font-size:18px;font-weight:700;text-transform:uppercase"
+                 oninput="this.value=this.value.toUpperCase();previewSectionCard()">
+          <small style="color:var(--text-muted);font-size:11px">1–3 letras o números, único</small>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Nombre completo <span style="color:var(--danger)">*</span></label>
+          <input id="sec-name" class="form-input" type="text" maxlength="60" placeholder="Ej: Gastronomía y Cocina" autocomplete="off" oninput="previewSectionCard()">
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:18px">
+        <div class="form-field">
+          <label class="form-label">Nombre corto</label>
+          <input id="sec-short" class="form-input" type="text" maxlength="16" placeholder="Ej: Gastronomía" autocomplete="off">
+          <small style="color:var(--text-muted);font-size:11px">Se usa en etiquetas y estadísticas</small>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Color</label>
+          <div style="display:flex;align-items:center;gap:8px">
+            <input id="sec-color" type="color" value="#2D5A8E"
+                   style="width:42px;height:36px;border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;padding:2px"
+                   oninput="previewSectionCard()">
+            <input id="sec-color-hex" class="form-input" type="text" maxlength="7" placeholder="#2D5A8E"
+                   style="font-family:var(--font-m);font-size:12px"
+                   oninput="syncColorHex(this.value)">
+          </div>
+        </div>
+      </div>
+      <!-- Preview -->
+      <div style="margin-bottom:16px">
+        <div class="form-label" style="margin-bottom:8px">Vista previa</div>
+        <div id="sec-preview" style="max-width:240px;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--surface)">
+          <div style="padding:14px 16px 10px;display:flex;align-items:flex-start;gap:10px">
+            <div id="sec-prev-code" style="width:40px;height:40px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:var(--font-m);font-size:16px;font-weight:700;color:#fff;flex-shrink:0;background:#2D5A8E">P</div>
+            <div>
+              <div id="sec-prev-name" style="font-size:13px;font-weight:600">Nueva sección</div>
+              <div style="font-size:12px;color:var(--text-muted);margin-top:2px">0 libros</div>
+            </div>
+          </div>
+          <div style="height:3px;margin:0 16px 12px;border-radius:2px;background:var(--surface2)">
+            <div id="sec-prev-bar" style="height:100%;width:0%;border-radius:2px;background:#2D5A8E"></div>
+          </div>
+        </div>
+      </div>
+      <div id="sec-error" style="display:none;color:var(--danger);font-size:13px;margin-bottom:10px"></div>
+      <div style="display:flex;gap:10px;justify-content:flex-end">
+        <button class="btn btn-secondary" onclick="closeSectionModal()">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveSectionModal()">Guardar sección</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- AI SCAN MODAL -->
+<div id="ai-scan-modal" class="modal" style="display:none">
+  <div class="modal-backdrop" onclick="closeAIScanModal()"></div>
+  <div class="modal-box" style="max-width:580px">
+    <div class="modal-header" style="background:linear-gradient(135deg,#3a1f8a 0%,#0e7a8a 100%)">
+      <h2 class="modal-title" style="color:#fff;display:flex;align-items:center;gap:8px">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 6v6l4 2"/><circle cx="19" cy="5" r="3" fill="currentColor" stroke="none"/></svg>
+        Escanear libro con IA
+      </h2>
+      <button class="modal-close" style="color:#fff" onclick="closeAIScanModal()">×</button>
+    </div>
+    <div class="modal-body" id="ai-scan-body" style="padding:20px"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
 <div id="toast"></div>
 
+<!-- ════════════════════════════════════════════════════
+     PRINT TARGETS (hidden, shown only on print)
+═════════════════════════════════════════════════════ -->
+<div id="print-target" style="display:none"></div>
+
 <script>
+// ─────────────────────────────────────────────────────
+// SECTIONS CONFIGURATION  (45 secciones)
+// ─────────────────────────────────────────────────────
+// ── 45 SECCIONES (códigos de 2 letras) ───────────────────────────────────────
+// Nota: el código original tenía "RE" duplicado (Religión y Referencia).
+//       Se usa RE para Religión y espiritualidad, y RF para Referencia.
 const SECTIONS = [
+  // ── NOVELA ─────────────────────────────────────────────────────────────────
   { code:'NC', name:'Novela colombiana',           color:'#1A3A6B', short:'Nov. Col.' },
   { code:'NE', name:'Novela española',             color:'#2B4590', short:'Nov. Esp.' },
   { code:'NL', name:'Novela latinoamericana',      color:'#2563A8', short:'Nov. Lat.' },
   { code:'NU', name:'Novela universal',            color:'#3B7AC4', short:'Nov. Univ.' },
+  // ── CUENTO ─────────────────────────────────────────────────────────────────
   { code:'CC', name:'Cuento colombiano',           color:'#1B6B3A', short:'Cuento Col.' },
   { code:'CE', name:'Cuento español',              color:'#2E7D52', short:'Cuento Esp.' },
   { code:'CL', name:'Cuento latinoamericano',      color:'#28784A', short:'Cuento Lat.' },
   { code:'CU', name:'Cuento universal',            color:'#3CA868', short:'Cuento Univ.' },
+  // ── POESÍA ─────────────────────────────────────────────────────────────────
   { code:'PC', name:'Poesía colombiana',           color:'#6B3FA0', short:'Poesía Col.' },
   { code:'PE', name:'Poesía española',             color:'#7B4AB0', short:'Poesía Esp.' },
   { code:'PL', name:'Poesía latinoamericana',      color:'#8B55C0', short:'Poesía Lat.' },
   { code:'PU', name:'Poesía universal',            color:'#9B60D0', short:'Poesía Univ.' },
+  // ── ENSAYO ─────────────────────────────────────────────────────────────────
   { code:'EC', name:'Ensayo colombiano',           color:'#8B4513', short:'Ensayo Col.' },
   { code:'EL', name:'Ensayo latinoamericano',      color:'#A0522D', short:'Ensayo Lat.' },
   { code:'EU', name:'Ensayo universal',            color:'#B8682A', short:'Ensayo Univ.' },
   { code:'CR', name:'Crítica literaria',           color:'#7A5200', short:'Crítica Lit.' },
+  // ── HISTORIA Y GEOGRAFÍA ───────────────────────────────────────────────────
   { code:'HC', name:'Historia de Colombia',        color:'#6B3A1A', short:'Hist. Col.' },
   { code:'HU', name:'Historia universal',          color:'#8B5A3A', short:'Hist. Univ.' },
   { code:'GV', name:'Geografía y viajes',          color:'#4A7A1A', short:'Geogr.' },
+  // ── PENSAMIENTO ────────────────────────────────────────────────────────────
   { code:'FI', name:'Filosofía',                   color:'#3A2B6B', short:'Filosofía' },
   { code:'PS', name:'Psicología',                  color:'#4A3A8B', short:'Psicología' },
   { code:'RE', name:'Religión y espiritualidad',   color:'#5A3A7B', short:'Religión' },
+  // ── CIENCIAS Y NATURALEZA ──────────────────────────────────────────────────
   { code:'CI', name:'Ciencia',                     color:'#1A5C6B', short:'Ciencia' },
   { code:'TC', name:'Tecnología',                  color:'#1A4A6B', short:'Tecnología' },
   { code:'NA', name:'Naturaleza',                  color:'#2D6B3A', short:'Naturaleza' },
   { code:'SA', name:'Salud',                       color:'#1B7A5A', short:'Salud' },
+  // ── CIENCIAS SOCIALES Y DERECHO ────────────────────────────────────────────
   { code:'SO', name:'Ciencias sociales',           color:'#2D3A6B', short:'Cs. Sociales' },
   { code:'PO', name:'Política',                    color:'#3D4A7B', short:'Política' },
   { code:'DE', name:'Derecho',                     color:'#6B1A1A', short:'Derecho' },
   { code:'AG', name:'Administración y gestión',    color:'#1A4A5C', short:'Admin.' },
   { code:'EF', name:'Economía',                    color:'#006B6B', short:'Economía' },
   { code:'ED', name:'Educación',                   color:'#2B6B3A', short:'Educación' },
+  // ── ARTES Y CULTURA ────────────────────────────────────────────────────────
   { code:'AR', name:'Arte',                        color:'#8B3A1A', short:'Arte' },
   { code:'MU', name:'Música y cine',               color:'#8B1A3A', short:'Música/Cine' },
   { code:'TE', name:'Teatro',                      color:'#6B1A6B', short:'Teatro' },
+  // ── PERSONAS Y MEMORIA ─────────────────────────────────────────────────────
   { code:'BI', name:'Biografía',                   color:'#3D5A2B', short:'Biografía' },
   { code:'ME', name:'Memorias',                    color:'#5A4A2B', short:'Memorias' },
+  // ── ESPECIALES Y VARIOS ────────────────────────────────────────────────────
   { code:'IJ', name:'Infantil y juvenil',          color:'#8B6B00', short:'Infantil' },
   { code:'GC', name:'Gastronomía y cocina',        color:'#8B4A00', short:'Gastron.' },
   { code:'GO', name:'Gramática y Ortografía',      color:'#5A5A3A', short:'Gramática' },
@@ -324,123 +944,165 @@ const SECTIONS = [
   { code:'OT', name:'Otros',                       color:'#6B6B6B', short:'Otros' },
 ];
 
+// ─────────────────────────────────────────────────────
+// APP STATE
+// ─────────────────────────────────────────────────────
 const state = {
   view: 'dashboard',
-  userId: null,
-  books: [],
-  loans: [],
-  sections: [],
+  editId: null,
+  printId: null,
+  search: '',
+  filterSection: '',
+  filterStatus: '',
+  loanTab: 'active',
 };
 
 // ─────────────────────────────────────────────────────
-// FIREBASE FUNCTIONS
+// DATABASE (Firebase Firestore)
 // ─────────────────────────────────────────────────────
-async function getBooks() {
-  if (state.userId) {
-    const { getDocs, collection, query, where } = window.firebaseReady;
-    const db = window.firebaseReady.db;
-    const q = query(collection(db, 'books'), where('userId', '==', state.userId));
-    const snap = await getDocs(q);
-    state.books = snap.docs.map(d => ({id: d.id, ...d.data()}));
-  } else {
-    state.books = JSON.parse(localStorage.getItem('biblioteca_books')) || [];
-  }
-  return state.books;
-}
+let appState = { userId: null, books: [], loans: [], sections: [] };
 
-async function addBook(data) {
-  const id = uid();
-  data.id = id;
-  data.dateAdded = new Date().toISOString();
+const DB = {
+  _loadedBooks: false,
+  _loadedLoans: false,
+  _loadedSections: false,
 
-  if (state.userId) {
+  async books() {
+    if (!appState.userId) return [];
+    if (!this._loadedBooks) {
+      try {
+        const { getDocs, collection, query, where } = window.firebaseReady;
+        const db = window.firebaseReady.db;
+        const q = query(collection(db, 'books'), where('userId', '==', appState.userId));
+        const snap = await getDocs(q);
+        appState.books = snap.docs.map(d => ({id: d.id, ...d.data()}));
+        this._loadedBooks = true;
+      } catch(e) { console.error(e); }
+    }
+    return appState.books;
+  },
+
+  async addBook(b) {
+    if (!appState.userId) return;
+    b.id = uid(); b.dateAdded = new Date().toISOString(); b.userId = appState.userId;
     const { setDoc, doc } = window.firebaseReady;
     const db = window.firebaseReady.db;
-    data.userId = state.userId;
-    await setDoc(doc(db, 'books', id), data);
-  } else {
-    state.books.push(data);
-    localStorage.setItem('biblioteca_books', JSON.stringify(state.books));
-  }
+    try {
+      await setDoc(doc(db, 'books', b.id), b);
+      appState.books.unshift(b);
+      return b;
+    } catch(e) { console.error(e); }
+  },
 
-  await getBooks();
-  return data;
-}
-
-async function updateBook(id, data) {
-  if (state.userId) {
+  async updateBook(id, data) {
+    if (!appState.userId) return;
     const { updateDoc, doc } = window.firebaseReady;
     const db = window.firebaseReady.db;
-    await updateDoc(doc(db, 'books', id), data);
-  } else {
-    const idx = state.books.findIndex(b => b.id === id);
-    if (idx !== -1) {
-      state.books[idx] = {...state.books[idx], ...data};
-      localStorage.setItem('biblioteca_books', JSON.stringify(state.books));
-    }
-  }
-  await getBooks();
-}
+    try {
+      await updateDoc(doc(db, 'books', id), data);
+      const i = appState.books.findIndex(x => x.id === id);
+      if (i >= 0) appState.books[i] = {...appState.books[i], ...data};
+    } catch(e) { console.error(e); }
+  },
 
-async function deleteBook(id) {
-  if (state.userId) {
+  async deleteBook(id) {
+    if (!appState.userId) return;
     const { deleteDoc, doc } = window.firebaseReady;
     const db = window.firebaseReady.db;
-    await deleteDoc(doc(db, 'books', id));
-  } else {
-    state.books = state.books.filter(b => b.id !== id);
-    localStorage.setItem('biblioteca_books', JSON.stringify(state.books));
-  }
-  await getBooks();
-}
+    try {
+      await deleteDoc(doc(db, 'books', id));
+      appState.books = appState.books.filter(x => x.id !== id);
+    } catch(e) { console.error(e); }
+  },
 
-async function getLoans() {
-  if (state.userId) {
-    const { getDocs, collection, query, where } = window.firebaseReady;
-    const db = window.firebaseReady.db;
-    const q = query(collection(db, 'loans'), where('userId', '==', state.userId));
-    const snap = await getDocs(q);
-    state.loans = snap.docs.map(d => ({id: d.id, ...d.data()}));
-  } else {
-    state.loans = JSON.parse(localStorage.getItem('biblioteca_loans')) || [];
-  }
-  return state.loans;
-}
+  async loans() {
+    if (!appState.userId) return [];
+    if (!this._loadedLoans) {
+      try {
+        const { getDocs, collection, query, where } = window.firebaseReady;
+        const db = window.firebaseReady.db;
+        const q = query(collection(db, 'loans'), where('userId', '==', appState.userId));
+        const snap = await getDocs(q);
+        appState.loans = snap.docs.map(d => ({id: d.id, ...d.data()}));
+        this._loadedLoans = true;
+      } catch(e) { console.error(e); }
+    }
+    return appState.loans;
+  },
 
-async function addLoan(data) {
-  const id = uid();
-  data.id = id;
-  data.created = new Date().toISOString();
-
-  if (state.userId) {
+  async addLoan(l) {
+    if (!appState.userId) return;
+    l.id = uid(); l.created = new Date().toISOString(); l.userId = appState.userId;
     const { setDoc, doc } = window.firebaseReady;
     const db = window.firebaseReady.db;
-    data.userId = state.userId;
-    await setDoc(doc(db, 'loans', id), data);
-  } else {
-    state.loans.push(data);
-    localStorage.setItem('biblioteca_loans', JSON.stringify(state.loans));
-  }
+    try {
+      await setDoc(doc(db, 'loans', l.id), l);
+      appState.loans.unshift(l);
+      return l;
+    } catch(e) { console.error(e); }
+  },
 
-  await getLoans();
-  updateSidebarStats();
-}
-
-async function updateLoan(id, data) {
-  if (state.userId) {
+  async updateLoan(id, data) {
+    if (!appState.userId) return;
     const { updateDoc, doc } = window.firebaseReady;
     const db = window.firebaseReady.db;
-    await updateDoc(doc(db, 'loans', id), data);
-  } else {
-    const idx = state.loans.findIndex(l => l.id === id);
-    if (idx !== -1) {
-      state.loans[idx] = {...state.loans[idx], ...data};
-      localStorage.setItem('biblioteca_loans', JSON.stringify(state.loans));
+    try {
+      await updateDoc(doc(db, 'loans', id), data);
+      const i = appState.loans.findIndex(x => x.id === id);
+      if (i >= 0) appState.loans[i] = {...appState.loans[i], ...data};
+    } catch(e) { console.error(e); }
+  },
+
+  activeLoans() { return appState.loans.filter(l => l.status === 'active'); },
+  bookLoan(bookId) { return appState.loans.find(l => l.bookId === bookId && l.status === 'active'); },
+
+  async sections() {
+    if (!appState.userId) return [];
+    if (!this._loadedSections) {
+      try {
+        const { getDocs, collection, query, where } = window.firebaseReady;
+        const db = window.firebaseReady.db;
+        const q = query(collection(db, 'sections'), where('userId', '==', appState.userId));
+        const snap = await getDocs(q);
+        appState.sections = snap.docs.map(d => ({code: d.id, ...d.data()}));
+        this._loadedSections = true;
+      } catch(e) { console.error(e); }
     }
-  }
-  await getLoans();
-  updateSidebarStats();
-}
+    return appState.sections;
+  },
+
+  async addSection(s) {
+    if (!appState.userId) return;
+    s.userId = appState.userId;
+    const { setDoc, doc } = window.firebaseReady;
+    const db = window.firebaseReady.db;
+    try {
+      await setDoc(doc(db, 'sections', s.code), s);
+      appState.sections.push(s);
+    } catch(e) { console.error(e); }
+  },
+
+  async updateSection(code, data) {
+    if (!appState.userId) return;
+    const { updateDoc, doc } = window.firebaseReady;
+    const db = window.firebaseReady.db;
+    try {
+      await updateDoc(doc(db, 'sections', code), data);
+      const i = appState.sections.findIndex(x => x.code === code);
+      if (i >= 0) appState.sections[i] = {...appState.sections[i], ...data};
+    } catch(e) { console.error(e); }
+  },
+
+  async deleteSection(code) {
+    if (!appState.userId) return;
+    const { deleteDoc, doc } = window.firebaseReady;
+    const db = window.firebaseReady.db;
+    try {
+      await deleteDoc(doc(db, 'sections', code));
+      appState.sections = appState.sections.filter(x => x.code !== code);
+    } catch(e) { console.error(e); }
+  },
+};
 
 // ─────────────────────────────────────────────────────
 // UTILITIES
@@ -452,20 +1114,18 @@ function fmtDate(s) {
   return new Date(s).toLocaleDateString('es-CO', {day:'2-digit',month:'2-digit',year:'numeric'});
 }
 
-function esc(s) {
-  if (s == null) return '';
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+function toInputDate(s) {
+  if (!s) return '';
+  return new Date(s).toISOString().slice(0,10);
 }
 
-function toast(msg, dur=2800) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), dur);
-}
+// Merges the 15 built-in sections with any user-created custom sections
+function getAllSections() { return [...SECTIONS, ...DB.sections()]; }
 
-function sec(code) {
-  return SECTIONS.find(s => s.code === code) || {code, name:'Desconocido', color:'#666', short:code};
+function sec(code) { return getAllSections().find(s => s.code === code) || {code,name:'Desconocido',color:'#666',short:code}; }
+
+function isOverdue(loan) {
+  return loan.status === 'active' && loan.expectedReturn && new Date(loan.expectedReturn) < new Date();
 }
 
 function locCode(section, shelf, pos) {
@@ -473,127 +1133,78 @@ function locCode(section, shelf, pos) {
   return `${section}-${String(shelf||'?')}-${String(pos||'??').padStart(2,'0')}`;
 }
 
-function isOverdue(loan) {
-  return loan.status === 'active' && loan.expectedReturn && new Date(loan.expectedReturn) < new Date();
+function esc(s) {
+  if (s == null) return '';
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function toast(msg, dur=2800) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), dur);
+}
+
+function updateSidebarStats() {
+  const al = DB.activeLoans();
+  const od = al.filter(isOverdue);
+  const el = id => document.getElementById(id);
+  if (el('sb-total')) el('sb-total').textContent = DB.books().length;
+  if (el('sb-loans')) el('sb-loans').textContent = al.length;
+  if (el('sb-overdue')) el('sb-overdue').textContent = od.length;
 }
 
 // ─────────────────────────────────────────────────────
-// AUTH
+// NAVIGATION
 // ─────────────────────────────────────────────────────
-async function toggleAuth() {
-  if (state.userId) {
-    await handleLogout();
-  } else {
-    await handleGoogleLogin();
-  }
-}
-
-async function handleGoogleLogin() {
-  const btn = document.getElementById('auth-btn');
-  btn.disabled = true;
-  btn.textContent = 'Conectando...';
-
-  try {
-    const { auth, GoogleAuthProvider, signInWithPopup } = window.firebaseReady;
-    const provider = new GoogleAuthProvider();
-    const result = await signInWithPopup(auth, provider);
-    state.userId = result.user.uid;
-    document.getElementById('user-display-name').textContent = result.user.displayName || 'Usuario';
-    await loadAllData();
-    updateAuthButton();
-    toast('¡Bienvenido! Datos sincronizados en la nube');
-  } catch(err) {
-    console.error(err);
-    toast('Error: ' + err.message);
-    btn.disabled = false;
-  }
-}
-
-async function handleLogout() {
-  if (!confirm('¿Cerrar sesión?')) return;
-  try {
-    const { auth, signOut } = window.firebaseReady;
-    await signOut(auth);
-    state.userId = null;
-    state.books = [];
-    state.loans = [];
-    await loadAllData();
-    updateAuthButton();
-    toast('Sesión cerrada. Los datos ahora se guardan localmente');
-  } catch(err) {
-    toast('Error al cerrar sesión');
-  }
-}
-
-function updateAuthButton() {
-  const btn = document.getElementById('auth-btn');
-  const name = document.getElementById('user-display-name');
-  const status = document.getElementById('sync-status');
-  if (state.userId) {
-    btn.textContent = 'Cerrar sesión';
-    status.textContent = 'En la nube ☁️';
-  } else {
-    btn.textContent = 'Acceder con Google';
-    name.textContent = 'Sin cuenta';
-    status.textContent = 'Local 💾';
-  }
-  btn.disabled = false;
-}
-
-async function loadAllData() {
-  await getBooks();
-  await getLoans();
-  updateSidebarStats();
-}
-
-async function updateSidebarStats() {
-  const al = state.loans.filter(l => l.status === 'active');
-  document.getElementById('sb-total').textContent = state.books.length;
-  document.getElementById('sb-loans').textContent = al.length;
-}
-
-// ─────────────────────────────────────────────────────
-// NAVIGATION & RENDERING
-// ─────────────────────────────────────────────────────
-function navigate(view) {
+function navigate(view, params = {}) {
   state.view = view;
+  state.editId = params.editId || null;
+  state.printId = params.printId || null;
+  if (!params.keepSearch) { state.search = ''; state.filterSection = ''; state.filterStatus = ''; }
   document.querySelectorAll('.nav-item').forEach(el =>
     el.classList.toggle('active', el.dataset.view === view));
   renderView();
+  updateSidebarStats();
+  if (params.openAIScan) setTimeout(() => openAIScanModal(), 120);
 }
 
-async function renderView() {
+function renderView() {
   const mc = document.getElementById('main-content');
-  let html = '';
-
-  if (state.view === 'dashboard') {
-    html = await renderDashboard();
-  } else if (state.view === 'catalog') {
-    html = await renderCatalog();
-  } else if (state.view === 'register') {
-    html = await renderRegister();
-  } else if (state.view === 'loans') {
-    html = await renderLoans();
-  }
-
-  mc.innerHTML = html;
+  const renders = {
+    dashboard: renderDashboard,
+    catalog:   renderCatalog,
+    register:  renderRegister,
+    loans:     renderLoans,
+    sections:  renderSections,
+    print:     renderPrintView,
+  };
+  mc.innerHTML = (renders[state.view] || renderDashboard)();
+  mc.scrollTop = 0;
+  if (state.view === 'catalog')  setupCatalogEvents();
+  if (state.view === 'register') setupRegisterEvents();
 }
 
 // ─────────────────────────────────────────────────────
-// VIEWS
+// DASHBOARD
 // ─────────────────────────────────────────────────────
-async function renderDashboard() {
-  const books = state.books;
-  const loans = state.loans;
-  const al = loans.filter(l => l.status === 'active');
-  const od = al.filter(isOverdue);
-  const recent = books.slice(0,5);
+function renderDashboard() {
+  const books = DB.books();
+  const loans = DB.loans();
+  const al    = DB.activeLoans();
+  const od    = al.filter(isOverdue);
+  const recent= books.slice(0,6);
+  const byS   = {};
+  books.forEach(b => { byS[b.section] = (byS[b.section]||0)+1; });
+  const topS  = getAllSections().map(s => ({...s, count:byS[s.code]||0}))
+                         .filter(s => s.count > 0).sort((a,b) => b.count-a.count).slice(0,6);
 
   return `
   <div class="view-header">
     <div>
       <div class="view-eyebrow">Panel principal</div>
-      <h1 class="view-title">Mi Biblioteca ☁️</h1>
+      <h1 class="view-title">Mi Biblioteca</h1>
     </div>
     <button class="btn btn-primary" onclick="navigate('register')">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -602,94 +1213,545 @@ async function renderDashboard() {
   </div>
 
   ${od.length ? `<div class="alert alert-warning">
-    <strong>${od.length} préstamo${od.length>1?'s':''}</strong> con devolución vencida
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="12" cy="16" r=".5" fill="currentColor"/></svg>
+    <span><strong>${od.length} préstamo${od.length>1?'s':''}</strong> con devolución vencida.</span>
+    <button class="btn btn-sm btn-secondary" onclick="navigate('loans')">Ver préstamos</button>
   </div>` : ''}
 
   <div class="stat-grid">
-    <div class="stat-card"><div class="stat-label">Total libros</div><div class="stat-value">${books.length}</div><div class="stat-sub">registrados</div></div>
-    <div class="stat-card"><div class="stat-label">En préstamo</div><div class="stat-value">${al.length}</div><div class="stat-sub">${od.length?`${od.length} vencidos`:''}</div></div>
-    <div class="stat-card"><div class="stat-label">Préstamos activos</div><div class="stat-value">${loans.length}</div><div class="stat-sub">total</div></div>
-    <div class="stat-card"><div class="stat-label">Estado</div><div class="stat-value">${state.userId?'☁️':'💾'}</div><div class="stat-sub">${state.userId?'En la nube':'Local'}</div></div>
+    <div class="stat-card"><div class="stat-label">Total libros</div><div class="stat-value">${books.length.toLocaleString('es-CO')}</div><div class="stat-sub">registrados</div></div>
+    <div class="stat-card"><div class="stat-label">Secciones activas</div><div class="stat-value">${Object.keys(byS).length}</div><div class="stat-sub">de 15 disponibles</div></div>
+    <div class="stat-card"><div class="stat-label">En préstamo</div><div class="stat-value ${al.length?'stat-warn':''}">${al.length}</div><div class="stat-sub">${od.length?`<span style="color:var(--danger)">${od.length} vencidos</span>`:'al día'}</div></div>
+    <div class="stat-card"><div class="stat-label">Préstamos históricos</div><div class="stat-value">${loans.length}</div><div class="stat-sub">total registrados</div></div>
   </div>
 
-  <div class="panel">
-    <div class="panel-header"><h2 class="panel-title">Últimos ingresos</h2></div>
-    ${!recent.length ? `<div class="empty-state-small">Sin libros. <button style="background:none;border:none;color:var(--accent);cursor:pointer;" onclick="navigate('register')">Registra el primero.</button></div>` :
-      recent.map(b => {
-        const s = sec(b.section);
-        const loan = state.loans.find(l => l.bookId === b.id && l.status === 'active');
-        return `<div style="padding:10px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px">
-          <div style="width:28px;height:28px;border-radius:4px;background:${s.color};color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">${s.code}</div>
-          <div style="flex:1"><div style="font-size:13px;font-weight:500">${esc(b.title)}</div><div style="font-size:11px;color:var(--text-muted)">${esc(b.author||'')}</div></div>
-          ${loan?'<span style="background:var(--gold-dim);color:var(--gold);padding:2px 8px;border-radius:99px;font-size:10px;font-weight:600">Prestado</span>':''}
-        </div>`;
-      }).join('')}
+  <div class="two-col">
+    <div class="panel">
+      <div class="panel-header"><h2 class="panel-title">Últimos ingresos</h2><button class="btn btn-ghost btn-sm" onclick="navigate('catalog')">Ver todos</button></div>
+      ${!recent.length ? `<div class="empty-state-small">Sin libros. <button class="link-btn" onclick="navigate('register')">Registra el primero.</button></div>` :
+        recent.map(b => {
+          const s = sec(b.section), loan = DB.bookLoan(b.id);
+          return `<div class="mini-book-row">
+            <div class="mini-section-badge" style="background:${s.color}">${s.code}</div>
+            <div class="mini-book-info"><div class="mini-book-title">${esc(b.title)}</div><div class="mini-book-author">${esc(b.author||'—')}</div></div>
+            <div class="mini-book-meta">${loan?'<span class="badge badge-loan">Prestado</span>':''}<span class="location-code">${esc(b.locationCode||'')}</span></div>
+          </div>`;
+        }).join('')}
+    </div>
+
+    <div class="panel">
+      <div class="panel-header"><h2 class="panel-title">Por sección</h2><button class="btn btn-ghost btn-sm" onclick="navigate('sections')">Ver mapa</button></div>
+      ${!topS.length ? `<div class="empty-state-small">Registra libros para ver estadísticas.</div>` :
+        topS.map(s => {
+          const pct = books.length ? Math.round(s.count/books.length*100) : 0;
+          return `<div class="section-stat-row">
+            <div class="section-badge" style="background:${s.color}">${s.code}</div>
+            <div class="section-stat-info"><div class="section-stat-name">${s.name}</div><div class="section-stat-bar-wrap"><div class="section-stat-bar" style="width:${pct}%;background:${s.color}"></div></div></div>
+            <div class="section-stat-count">${s.count}</div>
+          </div>`;
+        }).join('')}
+    </div>
   </div>
-  `;
+
+  ${al.length ? `<div class="panel">
+    <div class="panel-header"><h2 class="panel-title">Préstamos activos</h2><button class="btn btn-ghost btn-sm" onclick="navigate('loans')">Gestionar</button></div>
+    <div class="table-wrap"><table class="data-table">
+      <thead><tr><th>Libro</th><th>Prestado a</th><th>Teléfono</th><th>Devolución esperada</th><th>Estado</th><th></th></tr></thead>
+      <tbody>
+        ${al.map(l => {
+          const b = DB.books().find(x=>x.id===l.bookId);
+          const ov = isOverdue(l);
+          return `<tr>
+            <td>${b?esc(b.title):'(eliminado)'}</td>
+            <td>${esc(l.borrowerName)}</td>
+            <td class="mono">${esc(l.borrowerPhone||'—')}</td>
+            <td class="${ov?'text-danger':''}">${fmtDate(l.expectedReturn)}</td>
+            <td><span class="badge ${ov?'badge-overdue':'badge-loan'}">${ov?'Vencido':'Activo'}</span></td>
+            <td><button class="btn btn-sm btn-secondary" onclick="returnLoan('${l.id}')">Devuelto</button></td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table></div>
+  </div>` : ''}`;
 }
 
-async function renderCatalog() {
-  const books = state.books;
+// ─────────────────────────────────────────────────────
+// CATALOG
+// ─────────────────────────────────────────────────────
+function renderCatalog() {
+  const all = DB.books();
+  const loanedIds = new Set(DB.activeLoans().map(l=>l.bookId));
+  let books = all;
+  if (state.search) {
+    const q = state.search.toLowerCase();
+    books = books.filter(b =>
+      b.title?.toLowerCase().includes(q) ||
+      b.author?.toLowerCase().includes(q) ||
+      b.isbn?.includes(q) ||
+      b.publisher?.toLowerCase().includes(q) ||
+      b.locationCode?.toLowerCase().includes(q)
+    );
+  }
+  if (state.filterSection) books = books.filter(b => b.section === state.filterSection);
+  if (state.filterStatus === 'loan') books = books.filter(b => loanedIds.has(b.id));
+  if (state.filterStatus === 'available') books = books.filter(b => !loanedIds.has(b.id));
 
   return `
   <div class="view-header">
     <div>
-      <div class="view-eyebrow">Colección</div>
-      <h1 class="view-title">Catálogo <span style="background:var(--surface2);color:var(--text-muted);font-size:14px;font-family:var(--font-m);padding:2px 8px;border-radius:99px;margin-left:6px">${books.length}</span></h1>
+      <div class="view-eyebrow">Colección completa</div>
+      <h1 class="view-title">Catálogo <span class="count-badge">${books.length}</span></h1>
     </div>
-    <button class="btn btn-primary" onclick="navigate('register')">➕ Registrar libro</button>
+    <div class="header-actions">
+      <button class="btn btn-secondary" onclick="openImportModal()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Importar Excel
+      </button>
+      <button class="btn btn-secondary" onclick="exportXLSX()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 15 12 10 17 15"/><line x1="12" y1="10" x2="12" y2="21"/></svg>
+        Exportar Excel
+      </button>
+      <button class="btn btn-secondary" onclick="saveBackup()" title="Guardar copia de seguridad completa (libros, préstamos, secciones)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Guardar
+      </button>
+      <button class="btn btn-primary" onclick="navigate('register')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Registrar libro
+      </button>
+    </div>
   </div>
 
-  <div class="panel">
-    ${!books.length ? `<div class="empty-state"><p>Tu biblioteca está vacía</p></div>` :
-      `<table style="width:100%;border-collapse:collapse">
-        <thead><tr style="background:var(--surface2);border-bottom:1px solid var(--border)"><th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase">Título</th><th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase">Autor</th><th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase">Sección</th></tr></thead>
-        <tbody>
-          ${books.map(b => {
-            const s = sec(b.section);
-            return `<tr style="border-bottom:1px solid var(--border)"><td style="padding:10px 14px">${esc(b.title)}</td><td style="padding:10px 14px">${esc(b.author||'')}</td><td style="padding:10px 14px"><span style="background:${s.color};color:#fff;padding:2px 8px;border-radius:3px;font-size:9px;font-weight:700">${s.code}</span></td></tr>`;
-          }).join('')}
-        </tbody>
-      </table>`}
+  <div class="catalog-toolbar">
+    <div class="search-wrap">
+      <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input id="cat-search" class="search-input" placeholder="Buscar por título, autor, ISBN, ubicación…"
+             value="${esc(state.search)}" autocomplete="off" autocorrect="off"
+             autocapitalize="off" spellcheck="false">
+    </div>
+    <select id="cat-sec" class="filter-select">
+      <option value="">Todas las secciones</option>
+      ${getAllSections().map(s=>`<option value="${s.code}"${state.filterSection===s.code?' selected':''}>${s.code} — ${s.name}</option>`).join('')}
+    </select>
+    <select id="cat-status" class="filter-select">
+      <option value="">Todos</option>
+      <option value="available"${state.filterStatus==='available'?' selected':''}>Disponibles</option>
+      <option value="loan"${state.filterStatus==='loan'?' selected':''}>En préstamo</option>
+    </select>
   </div>
-  `;
+
+  ${!books.length ? `<div class="empty-state">
+    <div class="empty-icon"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>
+    <p>${!all.length?'Tu biblioteca está vacía. Comienza registrando tu primer libro.':'Sin resultados para esos filtros.'}</p>
+    ${!all.length?`<button class="btn btn-primary" onclick="navigate('register')">Registrar primer libro</button>`:''}
+  </div>` : `
+  <div class="panel">
+    <div class="table-wrap"><table class="data-table" id="catalog-table">
+      <thead><tr>
+        <th class="row-check"><input type="checkbox" id="chk-all" title="Seleccionar todos" onchange="toggleSelectAll(this.checked)"></th>
+        <th>Ubicación</th><th>Portada</th><th>Título</th><th>Autor</th><th>Sección</th><th>Año</th><th>Estado</th><th>Acciones</th>
+      </tr></thead>
+      <tbody>
+        ${books.map(b => {
+          const s = sec(b.section), inLoan = loanedIds.has(b.id);
+          return `<tr class="${inLoan?'row-loaned':''}" id="row-${b.id}">
+            <td class="row-check"><input type="checkbox" class="book-chk" data-id="${b.id}" onchange="updateBulkBar()"></td>
+            <td><span class="mono" style="font-size:12px;font-weight:700">${esc(b.locationCode||'—')}</span></td>
+            <td>${b.coverImage?`<img src="${b.coverImage}" style="width:32px;height:44px;object-fit:cover;border-radius:2px;display:block">`:''}</td>
+            <td>
+              <div class="title-cell">${esc(b.title)}</div>
+              ${b.isbn?`<div class="isbn-cell">ISBN ${esc(b.isbn)}</div>`:''}
+            </td>
+            <td style="max-width:140px">${esc(b.author||'—')}</td>
+            <td><span class="section-badge-sm" style="background:${s.color}">${s.code}</span><span class="section-name-sm">${s.short}</span></td>
+            <td class="mono">${b.year||'—'}</td>
+            <td><span class="badge ${inLoan?'badge-loan':'badge-available'}">${inLoan?'Prestado':'Disponible'}</span></td>
+            <td>
+              <div class="action-group">
+                ${!inLoan
+                  ? `<button class="action-btn" title="Préstamo" onclick="openLoanModal('${b.id}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/></svg></button>`
+                  : `<button class="action-btn action-return" title="Marcar devuelto" onclick="returnBookFromCatalog('${b.id}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg></button>`}
+                <button class="action-btn" title="Imprimir ficha" onclick="navigate('print',{printId:'${b.id}'})"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg></button>
+                <button class="action-btn action-ai" title="Escanear con IA" onclick="navigate('register',{editId:'${b.id}',openAIScan:true})"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10"/><circle cx="19" cy="5" r="3" fill="currentColor" stroke="none"/><path d="M8 12h8M12 8v8"/></svg></button>
+                <button class="action-btn" title="Editar" onclick="navigate('register',{editId:'${b.id}'})"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                <button class="action-btn action-delete" title="Eliminar" onclick="deleteBook('${b.id}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
+              </div>
+            </td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>
+    <!-- BARRA DE ACCIONES EN BLOQUE -->
+    <div class="bulk-bar hidden" id="bulk-bar">
+      <span class="bulk-count" id="bulk-count">0 libros seleccionados</span>
+      <div class="bulk-actions">
+        <button class="btn-bulk-clr" onclick="clearSelection()">Deseleccionar todo</button>
+        <button class="btn-bulk-del" onclick="openBulkDeleteModal()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+          Eliminar seleccionados
+        </button>
+      </div>
+    </div>
+  </div>`}`;
 }
 
-async function renderRegister() {
+function setupCatalogEvents() {
+  const si = document.getElementById('cat-search');
+  const ss = document.getElementById('cat-sec');
+  const st = document.getElementById('cat-status');
+  if (si) si.addEventListener('input', () => {
+    state.search = si.value;
+    const caretPos = si.selectionStart;
+    clearTimeout(window._st);
+    window._st = setTimeout(() => {
+      renderView();
+      const newSi = document.getElementById('cat-search');
+      if (newSi) {
+        newSi.focus();
+        try { newSi.setSelectionRange(caretPos, caretPos); } catch(e){}
+      }
+    }, 250);
+  });
+  if (ss) ss.addEventListener('change', () => { state.filterSection = ss.value; renderView(); });
+  if (st) st.addEventListener('change', () => { state.filterStatus = st.value; renderView(); });
+}
+
+// ─────────────────────────────────────────────────────
+// REGISTER
+// ─────────────────────────────────────────────────────
+function renderRegister() {
+  const book = state.editId ? DB.books().find(b => b.id === state.editId) : null;
+  const v = f => book ? esc(book[f]||'') : '';
+
   return `
   <div class="view-header">
     <div>
-      <div class="view-eyebrow">Nuevo libro</div>
-      <h1 class="view-title">Registrar libro</h1>
+      <div class="view-eyebrow">${book?'Editar registro':'Nuevo libro'}</div>
+      <h1 class="view-title">${book?esc(book.title):'Registrar libro'}</h1>
     </div>
+    <button class="btn btn-ghost" onclick="navigate('catalog')">← Volver al catálogo</button>
   </div>
 
-  <div class="panel">
-    <div class="panel-header"><h2 class="panel-title">Datos del libro</h2></div>
-    <div style="padding:20px">
-      <div style="margin-bottom:14px">
-        <label style="display:block;font-size:11px;font-weight:600;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px">Título *</label>
-        <input id="f-title" style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius);font-size:13px" placeholder="Título del libro">
+  <div class="form-card">
+    <!-- ISBN LOOKUP -->
+    <div class="form-section">
+      <div class="form-section-title">🔍 Búsqueda rápida por ISBN</div>
+      <div class="form-field" style="max-width:420px">
+        <label class="form-label">ISBN (10 o 13 dígitos)</label>
+        <div class="isbn-row">
+          <input id="isbn-input" class="form-input" placeholder="ej. 9789584248008" value="${v('isbn')}">
+          <button class="btn btn-secondary" onclick="doISBNLookup()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            Buscar
+          </button>
+        </div>
+        <div class="isbn-status" id="isbn-status"></div>
+        <div class="form-hint">Ingresa el ISBN y haz clic en Buscar para autocompletar los campos.<br>Si no hay internet, completa los campos manualmente.</div>
       </div>
-      <div style="margin-bottom:14px">
-        <label style="display:block;font-size:11px;font-weight:600;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px">Autor *</label>
-        <input id="f-author" style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius);font-size:13px" placeholder="Apellido, Nombre">
-      </div>
-      <div style="margin-bottom:14px">
-        <label style="display:block;font-size:11px;font-weight:600;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px">Sección *</label>
-        <select id="f-section" style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius);font-size:13px">
-          <option value="">— Seleccionar —</option>
-          ${SECTIONS.map(s => `<option value="${s.code}">${s.code} — ${s.name}</option>`).join('')}
-        </select>
-      </div>
-      <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:20px" onclick="saveBook()">Guardar libro</button>
     </div>
-  </div>
-  `;
+
+    <!-- FOTO / PORTADA -->
+    <div class="form-section">
+      <div class="form-section-title">📷 Fotografía del libro</div>
+      <div style="display:flex;gap:20px;align-items:flex-start">
+        <div>
+          <div class="photo-upload-area" onclick="document.getElementById('photo-input').click()" id="photo-area">
+            ${book?.coverImage
+              ? `<img src="${book.coverImage}" class="photo-preview" id="photo-preview"><div style="font-size:11px;color:var(--text-muted)">Haz clic para cambiar</div>`
+              : `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--text-muted);margin-bottom:8px"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                <div style="font-size:12px;color:var(--text-muted)">Subir foto de portada</div>`}
+          </div>
+          <input type="file" id="photo-input" accept="image/*" style="display:none">
+        </div>
+        <div style="flex:1">
+          <div class="form-hint" style="margin-top:0">
+            <strong>Tres formas de registrar un libro:</strong><br><br>
+            <strong>1. Por ISBN:</strong> ingresa el código en el campo de arriba y presiona Buscar. El sistema consulta Google Books y autocompleta título, autor y editorial automáticamente (requiere internet).<br><br>
+            <strong>2. Por IA:</strong> sube una foto de la portada/contraportada y Claude AI leerá los campos automáticamente.<br><br>
+            <strong>3. Por foto:</strong> sube una foto de portada como referencia visual y completa los campos manualmente.
+          </div>
+          <button class="btn-ai-scan" style="margin-top:14px" onclick="openAIScanModal()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10"/><circle cx="19" cy="5" r="3" fill="currentColor" stroke="none"/><path d="M8 12h8M12 8v8"/></svg>
+            Escanear portada con Claude AI
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- DATOS DEL LIBRO -->
+    <div class="form-section">
+      <div class="form-section-title">📖 Datos bibliográficos</div>
+      <div class="form-grid">
+        <div class="form-field full-width">
+          <label class="form-label">Título <span class="req">*</span></label>
+          <input id="f-title" class="form-input" value="${v('title')}" placeholder="Título completo de la obra">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Autor principal <span class="req">*</span></label>
+          <input id="f-author" class="form-input" value="${v('author')}" placeholder="Apellido, Nombre">
+          <div class="form-hint">Formato: García Márquez, Gabriel</div>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Otros autores / Compiladores</label>
+          <input id="f-coauthors" class="form-input" value="${v('coauthors')}" placeholder="Opcional">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Editorial</label>
+          <input id="f-publisher" class="form-input" value="${v('publisher')}" placeholder="Nombre de la editorial">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Año de publicación</label>
+          <input id="f-year" class="form-input" type="number" min="1400" max="2030" value="${v('year')}" placeholder="ej. 1967">
+        </div>
+        <div class="form-field">
+          <label class="form-label">ISBN</label>
+          <input id="f-isbn" class="form-input" value="${v('isbn')}" placeholder="ISBN-13 o ISBN-10">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Idioma</label>
+          <select id="f-lang" class="form-select">
+            <option value="Español"${book?.language==='Español'||!book?' selected':''}>Español</option>
+            <option value="Inglés"${book?.language==='Inglés'?' selected':''}>Inglés</option>
+            <option value="Francés"${book?.language==='Francés'?' selected':''}>Francés</option>
+            <option value="Portugués"${book?.language==='Portugués'?' selected':''}>Portugués</option>
+            <option value="Alemán"${book?.language==='Alemán'?' selected':''}>Alemán</option>
+            <option value="Otro"${book?.language==='Otro'?' selected':''}>Otro</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Número de páginas</label>
+          <input id="f-pages" class="form-input" type="number" value="${v('pages')}" placeholder="ej. 432">
+        </div>
+      </div>
+    </div>
+
+    <!-- LOCALIZACIÓN -->
+    <div class="form-section">
+      <div class="form-section-title">📍 Localización en la biblioteca</div>
+      <div class="form-grid-3">
+        <div class="form-field">
+          <label class="form-label">Sección <span class="req">*</span></label>
+          <select id="f-section" class="form-select">
+            <option value="">— Seleccionar —</option>
+            ${getAllSections().map(s => `<option value="${s.code}"${book?.section===s.code?' selected':''}>${s.code} — ${s.name}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Estante (1–10)</label>
+          <input id="f-shelf" class="form-input" type="number" min="1" max="10" value="${v('shelf')}" placeholder="ej. 2">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Posición (1–99)</label>
+          <input id="f-pos" class="form-input" type="number" min="1" max="99" value="${v('position')}" placeholder="ej. 15">
+        </div>
+      </div>
+      <div style="margin-top:14px">
+        <div class="form-label" style="margin-bottom:6px">Código de ubicación generado</div>
+        <div class="location-preview" id="loc-preview">${book?.locationCode || '—'}</div>
+        <div class="form-hint" style="margin-top:6px">Formato: Sección — Estante — Posición (ej. A-2-15 = Novela Colombiana, Estante 2, Libro 15)</div>
+      </div>
+    </div>
+
+    <!-- ESTADO FÍSICO -->
+    <div class="form-section">
+      <div class="form-section-title">📋 Estado físico</div>
+      <div class="form-grid">
+        <div class="form-field">
+          <label class="form-label">Tipo de encuadernación</label>
+          <select id="f-cover" class="form-select">
+            <option value="Pasta blanda"${book?.coverType==='Pasta blanda'||!book?' selected':''}>Pasta blanda</option>
+            <option value="Pasta dura"${book?.coverType==='Pasta dura'?' selected':''}>Pasta dura</option>
+            <option value="Otro"${book?.coverType==='Otro'?' selected':''}>Otro</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Estado de conservación</label>
+          <select id="f-cond" class="form-select">
+            <option value="Excelente"${book?.condition==='Excelente'?' selected':''}>Excelente</option>
+            <option value="Bueno"${book?.condition==='Bueno'||!book?' selected':''}>Bueno</option>
+            <option value="Regular"${book?.condition==='Regular'?' selected':''}>Regular</option>
+            <option value="Deteriorado"${book?.condition==='Deteriorado'?' selected':''}>Deteriorado</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Fecha de ingreso a la biblioteca</label>
+          <input id="f-acq-date" class="form-input" type="date" value="${v('acquisitionDate') || new Date().toISOString().slice(0,10)}">
+          <small style="font-size:11px;color:var(--text-muted)">Cuándo adquiriste o ingresaste el libro (distinta al año de publicación)</small>
+        </div>
+        <div class="form-field full-width">
+          <label class="form-label">Notas</label>
+          <textarea id="f-notes" class="form-textarea" placeholder="Dedicatorias, ediciones especiales, observaciones…">${v('notes')}</textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACTIONS -->
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="navigate('catalog')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveBook()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        ${book ? 'Guardar cambios' : 'Registrar libro'}
+      </button>
+    </div>
+  </div>`;
 }
 
-async function renderLoans() {
-  const al = state.loans.filter(l => l.status === 'active');
+function setupRegisterEvents() {
+  const updateLoc = () => {
+    const s = val('f-section'), sh = val('f-shelf'), p = val('f-pos');
+    const preview = document.getElementById('loc-preview');
+    if (preview) preview.textContent = s ? locCode(s, sh, p) : '—';
+  };
+
+  ['f-section','f-shelf','f-pos'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('change', updateLoc);
+    if (el) el.addEventListener('input', updateLoc);
+  });
+
+  // ISBN field sync
+  const isbnInput = document.getElementById('isbn-input');
+  const fIsbn = document.getElementById('f-isbn');
+  if (isbnInput && fIsbn) {
+    isbnInput.addEventListener('input', () => { fIsbn.value = isbnInput.value; });
+  }
+
+  // Photo upload
+  const photoInput = document.getElementById('photo-input');
+  if (photoInput) {
+    photoInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const compressed = await compressImage(file);
+      const area = document.getElementById('photo-area');
+      if (area) {
+        area.innerHTML = `<img src="${compressed}" class="photo-preview" id="photo-preview"><div style="font-size:11px;color:var(--text-muted)">Haz clic para cambiar</div>`;
+      }
+      window._pendingPhoto = compressed;
+    });
+  }
+}
+
+async function doISBNLookup() {
+  const isbn = val('isbn-input').replace(/[-\s]/g,'');
+  if (!isbn) return;
+  const st = document.getElementById('isbn-status');
+  if (st) { st.className = 'isbn-status loading'; st.textContent = 'Consultando Google Books…'; }
+  try {
+    const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&maxResults=1`);
+    const data = await res.json();
+    if (!data.totalItems || !data.items?.length) throw new Error('ISBN no encontrado en la base de datos');
+    const info = data.items[0].volumeInfo;
+    const authors = (info.authors||[]).join('; ');
+    const year = info.publishedDate?.slice(0,4) || '';
+    // Populate form fields
+    setVal('f-title', info.title||'');
+    setVal('f-author', authors);
+    setVal('f-publisher', info.publisher||'');
+    setVal('f-year', year);
+    setVal('f-pages', info.pageCount||'');
+    setVal('f-isbn', isbn);
+    setVal('isbn-input', isbn);
+    // Try to set language
+    if (info.language === 'es') setSelectVal('f-lang', 'Español');
+    if (info.language === 'en') setSelectVal('f-lang', 'Inglés');
+    if (info.language === 'fr') setSelectVal('f-lang', 'Francés');
+    if (info.language === 'pt') setSelectVal('f-lang', 'Portugués');
+    if (info.language === 'de') setSelectVal('f-lang', 'Alemán');
+    // Cover image
+    const imgUrl = info.imageLinks?.thumbnail || info.imageLinks?.smallThumbnail;
+    if (imgUrl) {
+      try {
+        const resp = await fetch(imgUrl);
+        const blob = await resp.blob();
+        const reader = new FileReader();
+        reader.onload = () => {
+          window._pendingPhoto = reader.result;
+          const area = document.getElementById('photo-area');
+          if (area) area.innerHTML = `<img src="${reader.result}" class="photo-preview"><div style="font-size:11px;color:var(--text-muted)">Haz clic para cambiar</div>`;
+        };
+        reader.readAsDataURL(blob);
+      } catch {}
+    }
+    if (st) { st.className = 'isbn-status ok'; st.textContent = '✓ Datos encontrados y completados automáticamente.'; }
+  } catch (e) {
+    if (st) { st.className = 'isbn-status err'; st.textContent = '✗ ' + e.message; }
+  }
+}
+
+function val(id) { const el = document.getElementById(id); return el ? el.value.trim() : ''; }
+function setVal(id, v) { const el = document.getElementById(id); if (el) el.value = v; }
+function setSelectVal(id, v) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  for (const opt of el.options) if (opt.value === v) { opt.selected = true; break; }
+}
+
+async function compressImage(file) {
+  return new Promise(resolve => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ratio = Math.min(120/img.width, 180/img.height, 1);
+        canvas.width = img.width * ratio; canvas.height = img.height * ratio;
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL('image/jpeg', 0.6));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function saveBook() {
+  const title   = val('f-title');
+  const author  = val('f-author');
+  const section = val('f-section');
+  if (!title) { toast('El título es obligatorio.'); return; }
+  if (!author) { toast('El autor es obligatorio.'); return; }
+  if (!section) { toast('Selecciona una sección de localización.'); return; }
+
+  const shelf = parseInt(val('f-shelf')) || '';
+  const pos   = parseInt(val('f-pos')) || '';
+  const lc    = locCode(section, shelf, pos);
+
+  const data = {
+    title, author, section, shelf, position:pos, locationCode:lc,
+    coauthors: val('f-coauthors'),
+    publisher: val('f-publisher'),
+    year:      val('f-year'),
+    isbn:      val('f-isbn') || val('isbn-input'),
+    language:  val('f-lang'),
+    pages:     val('f-pages'),
+    coverType:       val('f-cover'),
+    condition:       val('f-cond'),
+    acquisitionDate: val('f-acq-date'),
+    notes:           val('f-notes'),
+    coverImage: window._pendingPhoto || (state.editId ? (DB.books().find(b=>b.id===state.editId)?.coverImage||'') : ''),
+  };
+
+  if (state.editId) {
+    DB.updateBook(state.editId, data);
+    toast('Libro actualizado correctamente.');
+  } else {
+    DB.addBook(data);
+    toast('Libro registrado correctamente.');
+  }
+  window._pendingPhoto = null;
+  state.editId = null;
+  navigate('catalog');
+}
+
+// ─────────────────────────────────────────────────────
+// LOANS
+// ─────────────────────────────────────────────────────
+function renderLoans() {
+  const all = DB.loans();
+  const active = all.filter(l => l.status === 'active');
+  const history = all.filter(l => l.status !== 'active');
+  const tab = state.loanTab || 'active';
 
   return `
   <div class="view-header">
@@ -699,70 +1761,1571 @@ async function renderLoans() {
     </div>
   </div>
 
-  <div class="panel">
-    ${!al.length ? `<div class="empty-state"><p>No hay préstamos activos</p></div>` :
-      al.map(l => {
-        const b = state.books.find(x => x.id === l.bookId);
-        const ov = isOverdue(l);
-        return `<div style="padding:14px 18px;border-bottom:1px solid var(--border)">
-          <div style="font-weight:600;margin-bottom:8px">${b ? esc(b.title) : '(eliminado)'}</div>
-          <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px">${esc(l.borrowerName)}</div>
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <span style="font-size:13px;color:${ov?'var(--danger)':'var(--text-muted)'}">${fmtDate(l.expectedReturn)}</span>
-            <button class="btn btn-sm btn-secondary" onclick="returnLoan('${l.id}')">Devuelto</button>
-          </div>
-        </div>`;
-      }).join('')}
+  <div class="loan-tabs">
+    <button class="loan-tab ${tab==='active'?'active':''}" onclick="switchLoanTab('active')">Activos (${active.length})</button>
+    <button class="loan-tab ${tab==='history'?'active':''}" onclick="switchLoanTab('history')">Historial (${history.length})</button>
   </div>
-  `;
+
+  ${tab === 'active' ? (
+    !active.length
+      ? `<div class="empty-state"><div class="empty-icon"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/></svg></div><p>No hay préstamos activos. ¡Todos los libros están en casa.</p></div>`
+      : active.map(l => {
+          const b = DB.books().find(x=>x.id===l.bookId);
+          const ov = isOverdue(l);
+          const daysRemaining = l.expectedReturn
+            ? Math.round((new Date(l.expectedReturn)-new Date())/(86400000))
+            : null;
+          return `<div class="loan-card${ov?' overdue':''}">
+            <div class="loan-card-header">
+              <div>
+                <div class="loan-book-title">${b?esc(b.title):'(libro eliminado)'}</div>
+                <div class="loan-book-author">${b?esc(b.author||''):''}${b?.locationCode?` · <span class="mono" style="font-size:11px">${b.locationCode}</span>`:''}</div>
+              </div>
+              <span class="badge ${ov?'badge-overdue':'badge-loan'}">${ov?'Vencido':'Activo'}</span>
+            </div>
+            <div class="loan-card-body">
+              <div class="loan-info-block"><div class="loan-info-label">Prestado a</div><div class="loan-info-val">${esc(l.borrowerName)}</div></div>
+              <div class="loan-info-block"><div class="loan-info-label">Teléfono</div><div class="loan-info-val mono">${esc(l.borrowerPhone||'—')}</div></div>
+              <div class="loan-info-block">
+                <div class="loan-info-label">Devolución esperada</div>
+                <div class="loan-info-val ${ov?'text-danger':''}">${fmtDate(l.expectedReturn)}</div>
+                ${daysRemaining!==null?`<div style="font-size:11px;color:${ov?'var(--danger)':'var(--text-muted)'}">${ov?`Vencido hace ${-daysRemaining} días`:`Faltan ${daysRemaining} días`}</div>`:''}
+              </div>
+            </div>
+            <div class="loan-card-foot">
+              <button class="btn btn-secondary btn-sm" onclick="returnLoan('${l.id}')">✓ Marcar como devuelto</button>
+              ${l.notes?`<span style="font-size:12px;color:var(--text-muted);align-self:center">Nota: ${esc(l.notes)}</span>`:''}
+            </div>
+          </div>`;
+        }).join('')
+  ) : (
+    !history.length
+      ? `<div class="empty-state"><p>Sin historial de préstamos aún.</p></div>`
+      : `<div class="panel"><div class="table-wrap"><table class="data-table">
+          <thead><tr><th>Libro</th><th>Prestado a</th><th>Teléfono</th><th>Fecha préstamo</th><th>Devuelto</th></tr></thead>
+          <tbody>
+            ${history.map(l => {
+              const b = DB.books().find(x=>x.id===l.bookId);
+              return `<tr>
+                <td>${b?esc(b.title):'(eliminado)'}</td>
+                <td>${esc(l.borrowerName)}</td>
+                <td class="mono">${esc(l.borrowerPhone||'—')}</td>
+                <td>${fmtDate(l.created)}</td>
+                <td>${fmtDate(l.returnDate)}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table></div></div>`
+  )}`;
+}
+
+function switchLoanTab(tab) { state.loanTab = tab; renderView(); }
+
+function openLoanModal(bookId) {
+  const b = DB.books().find(x=>x.id===bookId);
+  if (!b) return;
+  const modal = document.getElementById('loan-modal');
+  const body  = document.getElementById('loan-modal-body');
+  const today = new Date();
+  const defReturn = new Date(today.getTime() + 30*86400000).toISOString().slice(0,10);
+
+  body.innerHTML = `
+    <p style="font-size:13px;margin-bottom:14px;color:var(--text-muted)">Registrando préstamo de <strong style="color:var(--text)">${esc(b.title)}</strong></p>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div class="form-field">
+        <label class="form-label">Nombre completo <span class="req">*</span></label>
+        <input id="ln-name" class="form-input" placeholder="Nombre del prestatario">
+      </div>
+      <div class="form-field">
+        <label class="form-label">Teléfono / WhatsApp</label>
+        <input id="ln-phone" class="form-input" placeholder="ej. 3001234567" type="tel">
+      </div>
+      <div class="form-field">
+        <label class="form-label">Fecha de devolución esperada</label>
+        <input id="ln-return" class="form-input" type="date" value="${defReturn}">
+      </div>
+      <div class="form-field">
+        <label class="form-label">Notas</label>
+        <input id="ln-notes" class="form-input" placeholder="Observaciones opcionales">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeLoanModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="confirmLoan('${bookId}')">Registrar préstamo</button>
+    </div>`;
+  modal.style.display = 'flex';
+}
+
+function closeLoanModal() { document.getElementById('loan-modal').style.display = 'none'; }
+
+function confirmLoan(bookId) {
+  const name = document.getElementById('ln-name')?.value.trim();
+  if (!name) { toast('El nombre es obligatorio.'); return; }
+  DB.addLoan({
+    bookId, borrowerName: name,
+    borrowerPhone: document.getElementById('ln-phone')?.value.trim() || '',
+    expectedReturn: document.getElementById('ln-return')?.value || '',
+    notes: document.getElementById('ln-notes')?.value.trim() || '',
+    status: 'active',
+  });
+  closeLoanModal();
+  toast(`Préstamo de "${DB.books().find(b=>b.id===bookId)?.title||'libro'}" registrado.`);
+  updateSidebarStats();
+  renderView();
+}
+
+function returnLoan(loanId) {
+  if (!confirm('¿Confirmar devolución del libro?')) return;
+  DB.updateLoan(loanId, { status:'returned', returnDate: new Date().toISOString() });
+  toast('Devolución registrada.');
+  updateSidebarStats();
+  renderView();
+}
+
+function returnBookFromCatalog(bookId) {
+  const loan = DB.bookLoan(bookId);
+  if (loan) returnLoan(loan.id);
 }
 
 // ─────────────────────────────────────────────────────
-// BOOK OPERATIONS
+// SECTIONS MAP
 // ─────────────────────────────────────────────────────
-async function saveBook() {
-  const title = document.getElementById('f-title')?.value.trim();
-  const author = document.getElementById('f-author')?.value.trim();
-  const section = document.getElementById('f-section')?.value;
+function renderSections() {
+  const books     = DB.books();
+  const custom    = DB.sections();
+  const allSecs   = getAllSections();
+  const byS = {};
+  books.forEach(b => { byS[b.section] = (byS[b.section]||0)+1; });
+  const total = books.length || 1;
+  const isCustom  = code => custom.some(s => s.code === code);
+  const isDefault = code => SECTIONS.some(s => s.code === code);
 
-  if (!title || !author || !section) {
-    toast('Completa todos los campos obligatorios');
-    return;
+  return `
+  <div class="view-header">
+    <div>
+      <div class="view-eyebrow">Organización de la biblioteca</div>
+      <h1 class="view-title">Secciones de localización</h1>
+    </div>
+    <button class="btn btn-primary" onclick="openSectionModal()">+ Nueva sección</button>
+  </div>
+
+  <div class="panel" style="margin-bottom:20px;padding:18px 24px">
+    <p style="font-size:13px;color:var(--text-muted);line-height:1.7">
+      El sistema incluye <strong>45 secciones predefinidas</strong> más las secciones personalizadas que agregues.
+      El código de localización tiene el formato <strong class="mono" style="font-size:14px">NC-2-15</strong> = Sección · Estante · Posición.
+      Haz clic en una tarjeta para ver sus libros. Las secciones personalizadas se pueden editar o eliminar.
+    </p>
+  </div>
+
+  <div class="sections-grid">
+    ${allSecs.map(s => {
+      const count   = byS[s.code]||0;
+      const pct     = Math.round(count/total*100);
+      const custom  = !isDefault(s.code);
+      const actions = custom ? `
+        <div class="section-card-actions" onclick="event.stopPropagation()">
+          <button class="btn-sec-edit" onclick="openSectionModal('${s.code}')">Editar</button>
+          <button class="btn-sec-del"  onclick="deleteCustomSection('${s.code}')">Eliminar</button>
+        </div>` : '';
+      return `<div class="section-card" onclick="filterBySection('${s.code}')">
+        <div class="section-card-top">
+          <div class="section-code-big" style="background:${s.color}">${esc(s.code)}</div>
+          <div style="flex:1">
+            <div class="section-card-name">${esc(s.name)}${custom?'<span class="sec-badge-custom">personalizada</span>':''}</div>
+            <div class="section-card-count">${count} libro${count!==1?'s':''}</div>
+          </div>
+        </div>
+        <div class="section-card-bar">
+          <div class="section-card-bar-fill" style="width:${Math.max(pct,3)}%;background:${s.color}"></div>
+        </div>
+        ${actions}
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+function filterBySection(code) {
+  state.filterSection = code;
+  navigate('catalog', {keepSearch:true});
+}
+
+// ─────────────────────────────────────────────────────
+// PRINT VIEW
+// ─────────────────────────────────────────────────────
+function renderPrintView() {
+  const books = DB.books();
+  const selId = state.printId;
+  const selBook = selId ? books.find(b=>b.id===selId) : null;
+
+  return `
+  <div class="view-header">
+    <div>
+      <div class="view-eyebrow">Materiales imprimibles</div>
+      <h1 class="view-title">Fichas y Etiquetas</h1>
+    </div>
+  </div>
+
+  <div class="panel" style="padding:18px 24px;margin-bottom:20px">
+    <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap">
+      <div class="form-field" style="flex:1;min-width:220px">
+        <label class="form-label">Seleccionar libro para imprimir</label>
+        <select id="print-sel" class="form-select" onchange="selectPrintBook(this.value)">
+          <option value="">— Seleccionar libro —</option>
+          ${books.map(b=>`<option value="${b.id}"${b.id===selId?' selected':''}>[${b.locationCode||'?'}] ${esc(b.title)}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+  </div>
+
+  ${selBook ? `
+  <div class="print-preview-wrap">
+
+    <!-- FICHA DE CONTROL -->
+    <div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <h2 style="font-family:var(--font-d);font-size:17px;font-weight:600">Ficha de control</h2>
+        <button class="btn btn-primary btn-sm" onclick="printCard('${selBook.id}')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          Imprimir ficha
+        </button>
+      </div>
+      ${buildControlCard(selBook)}
+      <div style="font-size:11px;color:var(--text-muted);margin-top:8px">Tamaño sugerido: A6 (10,5 × 14,8 cm) o tarjeta de índice 4×6"</div>
+    </div>
+
+    <!-- ETIQUETAS -->
+    <div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <h2 style="font-family:var(--font-d);font-size:17px;font-weight:600">Etiquetas adhesivas</h2>
+        <button class="btn btn-primary btn-sm" onclick="printStickers('${selBook.id}')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          Imprimir etiquetas
+        </button>
+      </div>
+      <div class="sticker-wrap" style="display:flex;gap:20px;flex-wrap:wrap">
+        <div>
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;font-weight:600">Etiqueta de lomo (2,5 × 6 cm)</div>
+          ${buildSpineLabel(selBook)}
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;font-weight:600">Etiqueta de bolsillo (5 × 7 cm)</div>
+          ${buildPocketLabel(selBook)}
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:12px">Imprime en papel adhesivo A4 y recorta. La etiqueta de lomo va en el canto inferior del libro; la de bolsillo, en la tapa interior.</div>
+    </div>
+
+  </div>` : `
+  <div class="empty-state">
+    <div class="empty-icon"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg></div>
+    <p>${!books.length?'Registra libros para poder imprimir fichas y etiquetas.':'Selecciona un libro en la lista para previsualizar sus materiales imprimibles.'}</p>
+  </div>`}`;
+}
+
+function selectPrintBook(id) {
+  state.printId = id;
+  renderView();
+}
+
+function buildControlCard(b) {
+  const s = sec(b.section);
+  const loans = DB.loans().filter(l => l.bookId === b.id);
+  const emptyRows = Math.max(0, 8 - loans.length);
+
+  return `<div class="control-card">
+    <div class="cc-header">
+      <div>
+        <div class="cc-library" style="font-size:11px;opacity:.7;font-style:normal;font-weight:normal;margin-bottom:2px">Mi Biblioteca Personal</div>
+        <div class="cc-library">${esc(b.title)}</div>
+      </div>
+      <div class="cc-loc">${esc(b.locationCode||'—')}</div>
+    </div>
+    <div class="cc-body">
+      <div class="cc-row"><span class="cc-key">Autor: </span>${esc(b.author||'—')}</div>
+      ${b.coauthors?`<div class="cc-row"><span class="cc-key">Otros: </span>${esc(b.coauthors)}</div>`:''}
+      <div class="cc-row" style="display:flex;gap:20px">
+        <span><span class="cc-key">Editorial: </span>${esc(b.publisher||'—')}</span>
+        <span><span class="cc-key">Año: </span>${esc(b.year||'—')}</span>
+        ${b.isbn?`<span><span class="cc-key">ISBN: </span>${esc(b.isbn)}</span>`:''}
+      </div>
+      <div class="cc-row"><span class="cc-key">Sección: </span><span style="display:inline-block;background:${s.color};color:#fff;padding:1px 6px;border-radius:2px;font-size:10px">${s.code}</span> ${s.name}</div>
+
+      <table class="cc-table">
+        <thead><tr><th>Fecha préstamo</th><th>Nombre</th><th>Teléfono</th><th>Devolución</th></tr></thead>
+        <tbody>
+          ${loans.map(l=>`<tr>
+            <td>${fmtDate(l.created)}</td>
+            <td>${esc(l.borrowerName)}</td>
+            <td>${esc(l.borrowerPhone||'')}</td>
+            <td>${l.status==='returned'?fmtDate(l.returnDate):'pendiente'}</td>
+          </tr>`).join('')}
+          ${Array(emptyRows).fill('<tr><td></td><td></td><td></td><td></td></tr>').join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+function buildSpineLabel(b) {
+  const s = sec(b.section);
+  const parts = (b.locationCode||'').split('-');
+  return `<div class="sticker sticker-spine" style="width:70px">
+    <div class="s-sec" style="background:${s.color}">${s.code}</div>
+    <div class="s-code">${parts[1]||'?'}<br>${parts[2]||'??'}</div>
+    <div class="s-author">${esc(b.author?.split(',')[0]?.trim().toUpperCase().slice(0,5)||'')}</div>
+  </div>`;
+}
+
+function buildPocketLabel(b) {
+  const s = sec(b.section);
+  const shortT = b.title?.length > 22 ? b.title.slice(0,21)+'…' : b.title||'';
+  return `<div class="sticker sticker-pocket" style="width:160px">
+    <div class="sp-top" style="background:${s.color}">
+      <div class="sp-section-name">${s.name}</div>
+      <div class="sp-code">${esc(b.locationCode||'—')}</div>
+    </div>
+    <div class="sp-body">
+      <div class="sp-author">${esc(b.author?.split(',')[0]?.trim().toUpperCase()||'')}</div>
+      <div class="sp-title">${esc(shortT)}</div>
+      <div class="sp-lib">Mi Biblioteca Personal</div>
+    </div>
+  </div>`;
+}
+
+function printCard(bookId) {
+  const b = DB.books().find(x=>x.id===bookId);
+  if (!b) return;
+  const win = window.open('', '_blank', 'width=500,height=400');
+  win.document.write(`<!DOCTYPE html><html><head><title>Ficha - ${b.title}</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:Arial,sans-serif;background:#fff;padding:20px}
+    @media print{body{padding:0}}
+    .control-card{width:100%;max-width:420px;font-family:Arial,sans-serif;color:#000}
+    .cc-header{display:flex;justify-content:space-between;align-items:flex-start;padding:10px 14px;background:#1B4332;color:#fff}
+    .cc-library{font-size:13px;font-weight:bold;font-style:italic}
+    .cc-loc{font-family:monospace;font-size:20px;font-weight:900;letter-spacing:1px}
+    .cc-body{padding:10px 14px;border:1px solid #ccc;border-top:none}
+    .cc-row{margin-bottom:6px;font-size:12px}
+    .cc-key{font-weight:bold;font-size:10px;text-transform:uppercase;color:#555}
+    .cc-table{width:100%;border-collapse:collapse;margin-top:10px;font-size:11px}
+    .cc-table th{background:#1B4332;color:#fff;padding:5px 6px;text-align:left;font-size:10px;text-transform:uppercase;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .cc-table td{border:1px solid #ccc;padding:5px 6px;height:22px}
+  </style></head><body>${buildControlCard(b)}
+  <script>window.onload=()=>{window.print();setTimeout(()=>window.close(),1000)}<\/script>
+  </body></html>`);
+  win.document.close();
+}
+
+function printStickers(bookId) {
+  const b = DB.books().find(x=>x.id===bookId);
+  if (!b) return;
+  const s = sec(b.section);
+  const parts = (b.locationCode||'').split('-');
+  const shortT = b.title?.length > 22 ? b.title.slice(0,21)+'…' : b.title||'';
+  const win = window.open('', '_blank', 'width=600,height=500');
+  win.document.write(`<!DOCTYPE html><html><head><title>Etiquetas - ${b.title}</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:Arial,sans-serif;background:#fff;padding:20px;display:flex;gap:30px;flex-wrap:wrap}
+    @media print{body{padding:10px}}
+    h3{font-size:11px;color:#666;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px}
+    .spine{width:70px;border:2px solid #ccc;border-radius:4px;overflow:hidden;text-align:center;padding:8px 4px}
+    .spine .sec{width:100%;text-align:center;padding:6px 0;font-size:14px;font-weight:900;color:#fff;margin:0 -4px;width:calc(100% + 8px);background:${s.color};-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .spine .code{font-family:monospace;font-size:11px;font-weight:700;line-height:1.3;letter-spacing:.5px;margin-top:4px}
+    .spine .auth{font-size:9px;font-weight:bold;border-top:1px solid #ccc;padding-top:4px;margin-top:6px}
+    .pocket{width:160px;border:2px solid #ccc;border-radius:4px;overflow:hidden}
+    .pocket .top{padding:8px 10px;background:${s.color};color:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .pocket .sname{font-size:9px;text-transform:uppercase;letter-spacing:.5px;opacity:.85}
+    .pocket .pcode{font-family:monospace;font-size:22px;font-weight:900;letter-spacing:1px}
+    .pocket .body{padding:8px 10px}
+    .pocket .pauth{font-size:10px;font-weight:bold;text-transform:uppercase;letter-spacing:.5px}
+    .pocket .ptitle{font-size:11px;margin-top:2px;color:#333}
+    .pocket .plib{font-size:9px;color:#888;margin-top:6px;font-style:italic}
+  </style></head><body>
+  <div><h3>Lomo (2,5×6 cm)</h3>
+    <div class="spine">
+      <div class="sec">${s.code}</div>
+      <div class="code">${parts[1]||'?'}<br>${parts[2]||'??'}</div>
+      <div class="auth">${b.author?.split(',')[0]?.trim().toUpperCase().slice(0,5)||''}</div>
+    </div>
+  </div>
+  <div><h3>Bolsillo (5×7 cm)</h3>
+    <div class="pocket">
+      <div class="top"><div class="sname">${s.name}</div><div class="pcode">${b.locationCode||'—'}</div></div>
+      <div class="body">
+        <div class="pauth">${b.author?.split(',')[0]?.trim().toUpperCase()||''}</div>
+        <div class="ptitle">${shortT}</div>
+        <div class="plib">Mi Biblioteca Personal</div>
+      </div>
+    </div>
+  </div>
+  <script>window.onload=()=>{window.print();setTimeout(()=>window.close(),1000)}<\/script>
+  </body></html>`);
+  win.document.close();
+}
+
+// ─────────────────────────────────────────────────────
+// AI SCAN — CLAUDE API INTEGRATION
+// ─────────────────────────────────────────────────────
+let _aiScanImage = null; // { base64, mimeType, dataUrl }
+
+function openAIScanModal() {
+  _aiScanImage = null;
+  document.getElementById('ai-scan-modal').style.display = 'flex';
+  document.getElementById('ai-scan-body').innerHTML = renderAIScanStep1();
+  setupAIDropZone();
+}
+
+function closeAIScanModal() {
+  document.getElementById('ai-scan-modal').style.display = 'none';
+  _aiScanImage = null;
+}
+
+function renderAIScanStep1() {
+  const key = localStorage.getItem('bib_ai_key') || '';
+  return `
+  <div style="margin-bottom:16px">
+    <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--text-muted);margin-bottom:6px">
+      Clave API de Anthropic
+    </div>
+    <div class="ai-key-row">
+      <input id="ai-api-key" class="form-input" type="password" placeholder="sk-ant-api03-…"
+             value="${esc(key)}" autocomplete="off" spellcheck="false" style="font-family:monospace;font-size:12px">
+      <button class="btn btn-ghost" style="white-space:nowrap;font-size:12px"
+              onclick="document.getElementById('ai-api-key').type==='password'?document.getElementById('ai-api-key').type='text':document.getElementById('ai-api-key').type='password'">
+        Mostrar
+      </button>
+    </div>
+    <div style="font-size:11px;color:var(--text-muted);margin-top:5px">
+      Obtén tu clave en <a href="https://console.anthropic.com/account/keys" target="_blank" style="color:var(--accent)">console.anthropic.com</a>.
+      Se guarda en este navegador (no sale a ningún servidor propio).
+    </div>
+  </div>
+
+  <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--text-muted);margin-bottom:8px">
+    Foto del libro (portada, contraportada o lomo)
+  </div>
+  <div class="ai-drop-zone" id="ai-drop-zone" onclick="document.getElementById('ai-file-input').click()">
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+         style="color:var(--text-muted);margin-bottom:8px">
+      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+      <circle cx="12" cy="13" r="4"/>
+    </svg>
+    <div style="font-size:13px;color:var(--text-muted)">Haz clic o arrastra una imagen aquí</div>
+    <div style="font-size:11px;color:var(--text-muted);margin-top:4px">JPG, PNG, WEBP — máx. 5 MB</div>
+  </div>
+  <input type="file" id="ai-file-input" accept="image/jpeg,image/png,image/webp,image/gif" style="display:none">
+
+  <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--text-muted);margin:16px 0 8px">
+    Campos a extraer
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:13px;margin-bottom:16px">
+    ${[
+      ['ai-f-title','f-title','Título'],
+      ['ai-f-author','f-author','Autor principal'],
+      ['ai-f-publisher','f-publisher','Editorial'],
+      ['ai-f-year','f-year','Año de publicación'],
+      ['ai-f-lang','f-lang','Idioma'],
+      ['ai-f-cover','f-cover','Tipo de encuadernación'],
+      ['ai-f-cond','f-cond','Estado de conservación'],
+      ['ai-f-acq','f-acq-date','Fecha de ingreso (hoy)'],
+    ].map(([id,,label])=>`
+      <label style="display:flex;align-items:center;gap:7px;cursor:pointer;user-select:none">
+        <input type="checkbox" id="${id}" checked style="accent-color:var(--accent);width:14px;height:14px">
+        <span>${label}</span>
+      </label>`).join('')}
+  </div>
+
+  <div style="display:flex;gap:8px;justify-content:flex-end">
+    <button class="btn btn-ghost" onclick="closeAIScanModal()">Cancelar</button>
+    <button class="btn-ai-scan" onclick="doAIScan()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 2a10 10 0 1 0 10 10"/><circle cx="19" cy="5" r="3" fill="currentColor" stroke="none"/>
+      </svg>
+      Analizar imagen
+    </button>
+  </div>`;
+}
+
+function setupAIDropZone() {
+  const dz  = document.getElementById('ai-drop-zone');
+  const inp = document.getElementById('ai-file-input');
+  if (!dz || !inp) return;
+
+  inp.addEventListener('change', () => { if (inp.files[0]) loadAIImage(inp.files[0]); });
+  dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag-over'); });
+  dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
+  dz.addEventListener('drop', e => {
+    e.preventDefault(); dz.classList.remove('drag-over');
+    const f = e.dataTransfer.files[0];
+    if (f && f.type.startsWith('image/')) loadAIImage(f);
+  });
+}
+
+function loadAIImage(file) {
+  if (file.size > 5*1024*1024) { toast('La imagen debe pesar menos de 5 MB.'); return; }
+  const reader = new FileReader();
+  reader.onload = e => {
+    const dataUrl = e.target.result;
+    const mimeType = file.type || 'image/jpeg';
+    const base64 = dataUrl.split(',')[1];
+    _aiScanImage = { base64, mimeType, dataUrl };
+    const dz = document.getElementById('ai-drop-zone');
+    if (dz) {
+      dz.innerHTML = `<img src="${dataUrl}" style="max-height:200px;max-width:100%;border-radius:6px;object-fit:contain">
+        <div style="font-size:11px;color:var(--text-muted);margin-top:8px">${esc(file.name)} · ${(file.size/1024).toFixed(0)} KB — haz clic para cambiar</div>`;
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+async function doAIScan() {
+  const keyInput = document.getElementById('ai-api-key');
+  const apiKey = (keyInput?.value || '').trim();
+  if (!apiKey) { toast('Ingresa tu clave API de Anthropic.'); keyInput?.focus(); return; }
+  if (!_aiScanImage) { toast('Sube una foto del libro primero.'); return; }
+
+  localStorage.setItem('bib_ai_key', apiKey);
+
+  // Saber qué campos pedir
+  const fieldMap = [
+    ['ai-f-title',   'title',     'titulo'],
+    ['ai-f-author',  'author',    'autor'],
+    ['ai-f-publisher','publisher','editorial'],
+    ['ai-f-year',    'year',      'anio'],
+    ['ai-f-lang',    'language',  'idioma'],
+    ['ai-f-cover',   'coverType', 'encuadernacion'],
+    ['ai-f-cond',    'condition', 'estado'],
+    ['ai-f-acq',     'acqDate',   'fecha_ingreso'],
+  ];
+  const selected = fieldMap.filter(([chkId]) => document.getElementById(chkId)?.checked);
+  const wantsAcq = selected.some(f => f[1] === 'acqDate');
+
+  // Spinner
+  document.getElementById('ai-scan-body').innerHTML = `
+    <div class="ai-spinner">
+      <div class="ai-spinner-ring"></div>
+      <div style="font-size:14px;color:var(--text-muted)">Analizando imagen con Claude AI…</div>
+      <div style="font-size:12px;color:var(--text-muted)">Esto tarda unos segundos</div>
+    </div>`;
+
+  const camposJson = selected
+    .filter(f => f[1] !== 'acqDate')
+    .map(([,,k]) => `  "${k}": "…"`)
+    .join(',\n');
+
+  const prompt =
+`Analiza la imagen de este libro y extrae la información que sea visible.
+Responde ÚNICAMENTE con un objeto JSON válido, sin texto adicional, sin bloques de código markdown.
+
+Devuelve exactamente este esquema (usa null si el campo no es visible o no puedes determinarlo):
+{
+${camposJson}
+}
+
+Reglas estrictas:
+- encuadernacion: usa exactamente uno de → "Pasta blanda", "Pasta dura", "Otro"
+- estado: usa exactamente uno de → "Excelente", "Bueno", "Regular", "Deteriorado" (evalúa el desgaste físico visible)
+- anio: solo 4 dígitos numéricos, sin texto adicional
+- autor: formato "Apellido, Nombre" si es posible identificarlo
+- Si no ves el valor con claridad, usa null`;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model: 'claude-opus-4-5',
+        max_tokens: 600,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'image', source: { type: 'base64', media_type: _aiScanImage.mimeType, data: _aiScanImage.base64 } },
+            { type: 'text',  text: prompt }
+          ]
+        }]
+      })
+    });
+
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      throw new Error(err.error?.message || `Error HTTP ${resp.status}`);
+    }
+
+    const data = await resp.json();
+    const raw  = data.content?.[0]?.text || '';
+
+    // Extraer JSON de la respuesta
+    let parsed = {};
+    try {
+      const match = raw.match(/\{[\s\S]*\}/);
+      parsed = match ? JSON.parse(match[0]) : {};
+    } catch { parsed = {}; }
+
+    // Inyectar fecha de ingreso = hoy si fue solicitada
+    if (wantsAcq) parsed.fecha_ingreso = new Date().toISOString().slice(0, 10);
+
+    renderAIScanResults(parsed, selected);
+
+  } catch (err) {
+    document.getElementById('ai-scan-body').innerHTML = `
+      <div style="background:var(--danger-dim);color:var(--danger);border-radius:6px;padding:14px 16px;margin-bottom:16px;font-size:13px;line-height:1.6">
+        <strong>Error al conectar con Claude AI</strong><br>${esc(err.message)}
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button class="btn btn-ghost" onclick="closeAIScanModal()">Cerrar</button>
+        <button class="btn-ai-scan" onclick="openAIScanModal()">Reintentar</button>
+      </div>`;
+  }
+}
+
+function renderAIScanResults(parsed, selected) {
+  const labels = {
+    titulo:'Título', autor:'Autor principal', editorial:'Editorial',
+    anio:'Año publicación', idioma:'Idioma', encuadernacion:'Encuadernación',
+    estado:'Estado de conservación', fecha_ingreso:'Fecha de ingreso',
+  };
+  const keyOrder = ['titulo','autor','editorial','anio','idioma','encuadernacion','estado','fecha_ingreso'];
+  const fields = keyOrder.filter(k => k in parsed);
+
+  const html = fields.map(k => {
+    const val = parsed[k];
+    return `<div class="ai-result-field">
+      <div class="ai-result-label">${labels[k]||k}</div>
+      <div class="ai-result-value ${val===null||val===undefined?'ai-null':''}">${val!==null&&val!==undefined?esc(String(val)):'No detectado'}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('ai-scan-body').innerHTML = `
+    <div style="font-size:13px;font-weight:600;margin-bottom:12px;color:var(--text)">
+      ✓ Análisis completado — revisa los campos antes de aplicar:
+    </div>
+    <div class="ai-result-grid">${html}</div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:18px">
+      <button class="btn btn-ghost" onclick="openAIScanModal()">← Escanear otra foto</button>
+      <button class="btn btn-ghost" onclick="closeAIScanModal()">Cancelar</button>
+      <button class="btn-ai-scan" onclick="applyAIScanResults(${esc(JSON.stringify(parsed))})">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        Cargar en formulario
+      </button>
+    </div>`;
+}
+
+function applyAIScanResults(parsed) {
+  // Mapeo de clave JSON → id del campo del formulario
+  const setVal = (id, val) => {
+    if (!val) return;
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (el.tagName === 'SELECT') {
+      // Busca la option más parecida
+      const norm = String(val).toLowerCase().trim();
+      const opt = [...el.options].find(o => o.value.toLowerCase() === norm || o.text.toLowerCase() === norm);
+      if (opt) el.value = opt.value;
+    } else {
+      el.value = val;
+    }
+  };
+
+  if (parsed.titulo)         setVal('f-title',    parsed.titulo);
+  if (parsed.autor)          setVal('f-author',   parsed.autor);
+  if (parsed.editorial)      setVal('f-publisher',parsed.editorial);
+  if (parsed.anio)           setVal('f-year',     parsed.anio);
+  if (parsed.idioma)         setVal('f-lang',     parsed.idioma);
+  if (parsed.encuadernacion) setVal('f-cover',    parsed.encuadernacion);
+  if (parsed.estado)         setVal('f-cond',     parsed.estado);
+  if (parsed.fecha_ingreso)  setVal('f-acq-date', parsed.fecha_ingreso);
+
+  closeAIScanModal();
+  toast('✓ Campos cargados desde el análisis de IA. Revisa y completa los que falten.');
+}
+
+// ─────────────────────────────────────────────────────
+// EXPORT CSV / EXCEL
+// ─────────────────────────────────────────────────────
+function exportCSV() {
+  const books = DB.books();
+  if (!books.length) { toast('No hay libros para exportar.'); return; }
+  const cols = ['Ubicación','Título','Autor','Sección','Nombre Sección','Editorial','Año publicación','ISBN','Idioma','Páginas','Encuadernación','Estado','Fecha ingreso','Fecha registro sistema','Notas'];
+  const rows = books.map(b => {
+    const s = sec(b.section);
+    return [
+      b.locationCode||'', b.title||'', b.author||'', b.section||'', s.name,
+      b.publisher||'', b.year||'', b.isbn||'', b.language||'',
+      b.pages||'', b.coverType||'', b.condition||'',
+      b.acquisitionDate ? new Date(b.acquisitionDate).toLocaleDateString('es-CO') : '',
+      b.dateAdded ? new Date(b.dateAdded).toLocaleDateString('es-CO') : '',
+      b.notes||''
+    ].map(v => `"${String(v).replace(/"/g,'""')}"`).join(',');
+  });
+  const csv = '﻿' + cols.map(c=>`"${c}"`).join(',') + '\n' + rows.join('\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = 'mi-biblioteca.csv'; a.click();
+  URL.revokeObjectURL(url);
+  toast('Catálogo exportado en CSV.');
+}
+
+// ─────────────────────────────────────────────────────
+// EXPORTAR A EXCEL (.xlsx)
+// ─────────────────────────────────────────────────────
+function exportXLSX() {
+  const books = DB.books();
+  if (!books.length) { toast('No hay libros para exportar.'); return; }
+
+  if (typeof XLSX === 'undefined') {
+    toast('SheetJS no cargó. Exportando como CSV…'); exportCSV(); return;
   }
 
-  await addBook({
-    title, author, section,
-    locationCode: locCode(section, '', ''),
+  const wb = XLSX.utils.book_new();
+
+  // ── Hoja 1: Catálogo completo ──────────────────────────────────────────────
+  const headers = [
+    'Ubicación','Título','Autor','Coautores','Sección','Nombre sección',
+    'Estante','Posición','Editorial','Año publicación','ISBN','Idioma',
+    'Páginas','Encuadernación','Estado','Fecha ingreso','Notas'
+  ];
+  const dataRows = books.map(b => {
+    const s = sec(b.section);
+    return [
+      b.locationCode||'',
+      b.title||'',
+      b.author||'',
+      b.coauthors||'',
+      b.section||'',
+      s.name||'',
+      b.shelf||'',
+      b.position||'',
+      b.publisher||'',
+      b.year||'',
+      b.isbn||'',
+      b.language||'',
+      b.pages ? Number(b.pages)||b.pages : '',
+      b.coverType||'',
+      b.condition||'',
+      b.acquisitionDate||'',
+      b.notes||''
+    ];
   });
 
-  toast('Libro registrado correctamente');
-  navigate('catalog');
+  const wsCat = XLSX.utils.aoa_to_sheet([headers, ...dataRows]);
+  wsCat['!cols'] = [
+    {wch:12},{wch:36},{wch:26},{wch:20},{wch:7},{wch:22},
+    {wch:8},{wch:9},{wch:22},{wch:7},{wch:15},{wch:10},
+    {wch:8},{wch:15},{wch:13},{wch:13},{wch:30}
+  ];
+  // Estilos de encabezado (si el motor los soporta)
+  if (wsCat['A1']) {
+    headers.forEach((_, i) => {
+      const cell = wsCat[XLSX.utils.encode_cell({r:0, c:i})];
+      if (cell) cell.s = { font:{bold:true}, fill:{fgColor:{rgb:'1E3A5F'}}, font:{color:{rgb:'FFFFFF'},bold:true} };
+    });
+  }
+  XLSX.utils.book_append_sheet(wb, wsCat, 'Catálogo');
+
+  // ── Hoja 2: Por sección ────────────────────────────────────────────────────
+  const bySection = {};
+  books.forEach(b => { bySection[b.section] = (bySection[b.section]||0)+1; });
+  const secRows = getAllSections()
+    .filter(s => bySection[s.code])
+    .sort((a,b) => (bySection[b.code]||0)-(bySection[a.code]||0))
+    .map(s => [s.code, s.name, bySection[s.code]||0]);
+  const wsSec = XLSX.utils.aoa_to_sheet([
+    ['Código','Sección','Total libros'],
+    ...secRows,
+    [],
+    ['','TOTAL', books.length]
+  ]);
+  wsSec['!cols'] = [{wch:8},{wch:28},{wch:12}];
+  XLSX.utils.book_append_sheet(wb, wsSec, 'Por sección');
+
+  // ── Hoja 3: Préstamos activos ─────────────────────────────────────────────
+  const loans = DB.loans().filter(l => l.status === 'active');
+  if (loans.length) {
+    const lHeaders = ['Título','Autor','Ubicación','Prestatario','Teléfono','Fecha préstamo','Devolución esperada','Notas'];
+    const lRows = loans.map(l => {
+      const b = DB.books().find(x => x.id === l.bookId) || {};
+      return [
+        b.title||'', b.author||'', b.locationCode||'',
+        l.borrowerName||'', l.borrowerPhone||'',
+        l.dateOut||'', l.expectedReturn||'', l.notes||''
+      ];
+    });
+    const wsLoans = XLSX.utils.aoa_to_sheet([lHeaders, ...lRows]);
+    wsLoans['!cols'] = [{wch:32},{wch:24},{wch:12},{wch:20},{wch:13},{wch:13},{wch:13},{wch:28}];
+    XLSX.utils.book_append_sheet(wb, wsLoans, 'Préstamos activos');
+  }
+
+  const fecha = new Date().toISOString().slice(0,10);
+  XLSX.writeFile(wb, `biblioteca-${fecha}.xlsx`);
+  toast(`✓ Catálogo exportado: ${books.length} libros en biblioteca-${fecha}.xlsx`);
 }
 
-async function returnLoan(loanId) {
-  if (!confirm('¿Confirmar devolución?')) return;
-  await updateLoan(loanId, { status: 'returned', returnDate: new Date().toISOString() });
-  toast('Devolución registrada');
+// ─────────────────────────────────────────────────────
+// GUARDAR COPIA DE SEGURIDAD (.json)
+// ─────────────────────────────────────────────────────
+function saveBackup() {
+  const payload = {
+    version: 2,
+    exportedAt: new Date().toISOString(),
+    books:    DB.books(),
+    loans:    DB.loans(),
+    sections: DB.sections(),
+  };
+  const json = JSON.stringify(payload, null, 2);
+  const blob = new Blob([json], {type:'application/json;charset=utf-8'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  const fecha = new Date().toISOString().slice(0,10);
+  a.href = url;
+  a.download = `biblioteca-backup-${fecha}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast(`✓ Copia de seguridad guardada (${DB.books().length} libros, ${DB.loans().filter(l=>l.status==='active').length} préstamos activos).`, 5000);
+}
+
+// ─────────────────────────────────────────────────────
+// DELETE BOOK
+// ─────────────────────────────────────────────────────
+function deleteBook(id) {
+  const b = DB.books().find(x=>x.id===id);
+  if (!b || !confirm(`¿Eliminar "${b.title}" del catálogo? Esta acción no se puede deshacer.`)) return;
+  DB.deleteBook(id);
+  toast('Libro eliminado.');
+  updateSidebarStats();
   renderView();
 }
 
 // ─────────────────────────────────────────────────────
-// AUTH STATE LISTENER
+// SAMPLE DATA (loaded once if library is empty)
 // ─────────────────────────────────────────────────────
-window.firebaseReady.onAuthStateChanged(window.firebaseReady.auth, async (user) => {
-  if (user) {
-    state.userId = user.uid;
-    document.getElementById('user-display-name').textContent = user.displayName || 'Usuario';
-    await loadAllData();
-  } else {
-    state.userId = null;
-    await loadAllData();
-  }
-  updateAuthButton();
-});
+function loadSampleData() {
+  if (DB.books().length > 0) return;
+  const samples = [
+    {title:'Cien años de soledad',author:'García Márquez, Gabriel',section:'NC',shelf:1,position:1,publisher:'Editorial Sudamericana',year:'1967',isbn:'9789584248008',language:'Español',pages:'471',coverType:'Pasta blanda',condition:'Bueno'},
+    {title:'La hojarasca',author:'García Márquez, Gabriel',section:'NC',shelf:1,position:2,publisher:'Editorial Oveja Negra',year:'1955',language:'Español',pages:'160',coverType:'Pasta blanda',condition:'Bueno'},
+    {title:'El coronel no tiene quien le escriba',author:'García Márquez, Gabriel',section:'NC',shelf:1,position:3,publisher:'Era',year:'1961',language:'Español',pages:'128',coverType:'Pasta blanda',condition:'Excelente'},
+    {title:'La cándida Eréndira y su abuela desalmada',author:'García Márquez, Gabriel',section:'CC',shelf:1,position:1,publisher:'Bruguera',year:'1972',language:'Español',pages:'192',coverType:'Pasta blanda',condition:'Bueno'},
+    {title:'Todos los cuentos',author:'Téllez, Hernando',section:'CC',shelf:1,position:2,publisher:'Banco de la República',year:'1979',language:'Español',pages:'280',coverType:'Pasta dura',condition:'Regular'},
+    {title:'Los adioses',author:'Onetti, Juan Carlos',section:'NL',shelf:1,position:1,publisher:'Punto de lectura',year:'1954',language:'Español',pages:'176',coverType:'Pasta blanda',condition:'Bueno'},
+    {title:'Pedro Páramo',author:'Rulfo, Juan',section:'NL',shelf:1,position:2,publisher:'FCE',year:'1955',isbn:'9789681600747',language:'Español',pages:'138',coverType:'Pasta blanda',condition:'Excelente'},
+    {title:'El proceso',author:'Kafka, Franz',section:'NU',shelf:1,position:1,publisher:'Alianza Editorial',year:'1925',language:'Español',pages:'250',coverType:'Pasta blanda',condition:'Bueno'},
+    {title:'Colombia: Una nación a pesar de sí misma',author:'Bushnell, David',section:'HC',shelf:1,position:1,publisher:'Planeta',year:'1996',language:'Español',pages:'420',coverType:'Pasta blanda',condition:'Bueno'},
+    {title:'Teoría pura del derecho',author:'Kelsen, Hans',section:'DE',shelf:1,position:1,publisher:'Porrúa',year:'1934',language:'Español',pages:'382',coverType:'Pasta dura',condition:'Regular'},
+  ];
+  samples.forEach(b => {
+    b.locationCode = locCode(b.section, b.shelf, b.position);
+    DB.addBook(b);
+  });
+  // Sample loan
+  const b1 = DB.books()[2];
+  const b2 = DB.books()[5];
+  if (b1) DB.addLoan({bookId:b1.id,borrowerName:'María Fernández',borrowerPhone:'3101234567',expectedReturn:new Date(Date.now()+15*86400000).toISOString().slice(0,10),status:'active',notes:''});
+  if (b2) DB.addLoan({bookId:b2.id,borrowerName:'Carlos Ospina',borrowerPhone:'3209876543',expectedReturn:new Date(Date.now()-5*86400000).toISOString().slice(0,10),status:'active',notes:'Lo necesita para un trabajo'});
+}
 
 // ─────────────────────────────────────────────────────
-// NAV HANDLER
+// IMPORT FROM EXCEL / CSV
+// ─────────────────────────────────────────────────────
+
+// Campos y sus alias reconocidos en los encabezados del Excel
+const FIELD_ALIASES = {
+  title:      ['titulo','título','title','obra','nombre del libro','nombre'],
+  author:     ['autor','author','autores','authors','autor principal'],
+  section:    ['seccion','sección','section','cod seccion','codigo seccion','código sección','clasificacion','clasificación','categoria','categoría','genero','género','area','área','topic','sec','cod'],
+  shelf:      ['estante','shelf','anaquel','entrepaño'],
+  position:   ['posicion','posición','position','pos','numero','número','num','lugar'],
+  publisher:  ['editorial','publisher','edicion','edición','casa editorial'],
+  year:       ['año','year','anio','año publicacion','año de publicacion','year published','ano publicacion'],
+  isbn:       ['isbn','isbn-13','isbn-10','codigo isbn'],
+  language:   ['idioma','language','lengua','lang'],
+  pages:      ['paginas','páginas','pages','pags','págs','num paginas','nro paginas'],
+  coverType:  ['encuadernacion','encuadernación','covertype','tipo','pasta','tipo encuadernacion'],
+  condition:  ['estado','condition','conservacion','conservación','estado libro'],
+  notes:           ['notas','notes','observaciones','comentarios','nota'],
+  coauthors:       ['coautores','coauthors','otros autores','compilador','editor'],
+  acquisitionDate: ['fecha ingreso','fecha de ingreso','adquisicion','adquisición','fecha adquisicion','fecha compra','ingreso','acquired','acquisition date'],
+};
+
+// Campos con sus etiquetas, obligatoriedad y valores aceptados
+const FIELD_DOCS = [
+  { field:'Titulo',         req:true,  desc:'Título completo de la obra',                     vals:'Texto libre' },
+  { field:'Autor',          req:true,  desc:'Autor principal (Apellido, Nombre)',               vals:'Ej: García Márquez, Gabriel' },
+  { field:'Seccion',        req:true,  desc:'Código de sección (2 letras) o nombre completo de la sección', vals:'NC NE NL NU CC CE CL CU PC PE PL PU EC EL EU CR HC HU GV FI PS RE CI TC NA SA SO PO DE AG EF ED AR MU TE BI ME IJ GC GO MI CO RV RF OT' },
+  { field:'Estante',        req:true,  desc:'Número de estante dentro de la sección (define la ubicación física)', vals:'1 – 99' },
+  { field:'Posicion',       req:true,  desc:'Posición del libro dentro del estante (define la ubicación física)',  vals:'1 – 999' },
+  { field:'Fecha ingreso',  req:true,  desc:'Fecha en que el libro ingresó a tu biblioteca (≠ año publicación)', vals:'AAAA-MM-DD o DD/MM/AAAA' },
+  { field:'Editorial',      req:false, desc:'Nombre de la casa editorial',                     vals:'Texto libre' },
+  { field:'Año',            req:false, desc:'Año de publicación',                              vals:'Ej: 1967' },
+  { field:'ISBN',           req:false, desc:'Código ISBN-13 o ISBN-10',                        vals:'Ej: 9789584248008' },
+  { field:'Idioma',         req:false, desc:'Idioma del libro',                                vals:'Español, Inglés, Francés…' },
+  { field:'Paginas',        req:false, desc:'Número total de páginas',                         vals:'Número entero' },
+  { field:'Encuadernacion', req:false, desc:'Tipo de encuadernación',                          vals:'Pasta blanda / Pasta dura / Otro' },
+  { field:'Estado',         req:false, desc:'Estado de conservación',                          vals:'Excelente / Bueno / Regular / Deteriorado' },
+  { field:'Notas',          req:false, desc:'Observaciones adicionales',                       vals:'Texto libre' },
+  { field:'Coautores',      req:false, desc:'Otros autores, compiladores o editores',          vals:'Texto libre' },
+];
+
+function openImportModal() {
+  document.getElementById('import-modal').style.display = 'flex';
+  document.getElementById('import-state').innerHTML = renderImportStep1();
+}
+
+function closeImportModal() {
+  document.getElementById('import-modal').style.display = 'none';
+  window._importRows = null;
+  window._importMapping = null;
+}
+
+function renderImportStep1() {
+  const req  = FIELD_DOCS.filter(f => f.req);
+  const opt  = FIELD_DOCS.filter(f => !f.req);
+  return `
+  <p style="font-size:13px;color:var(--text-muted);margin-bottom:14px;line-height:1.6">
+    El sistema lee tu archivo y detecta automáticamente las columnas. Si tus encabezados
+    están en español o inglés, el mapeo es automático. También puedes descargar la plantilla lista para llenar.
+  </p>
+
+  <div style="margin-bottom:14px">
+    <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text-muted);margin-bottom:8px">Campos obligatorios</div>
+    <div class="import-field-tags">
+      ${req.map(f=>`<span class="field-req">${f.field}</span>`).join('')}
+    </div>
+    <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text-muted);margin:10px 0 8px">Campos opcionales</div>
+    <div class="import-field-tags">
+      ${opt.map(f=>`<span class="field-opt">${f.field}</span>`).join('')}
+    </div>
+  </div>
+
+  <details style="margin-bottom:16px;font-size:12px">
+    <summary style="cursor:pointer;font-weight:600;color:var(--accent);padding:6px 0">Ver descripción completa de todos los campos</summary>
+    <div class="field-grid" style="margin-top:8px">
+      <div style="background:var(--surface2);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.6px">Campo</div>
+      <div style="background:var(--surface2);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.6px">Descripción · Valores aceptados</div>
+      ${FIELD_DOCS.map(f=>`
+        <div>${f.req?'<span class="field-req" style="font-size:10px;padding:1px 5px;vertical-align:middle;margin-right:4px">REQ</span>':''}<strong>${f.field}</strong></div>
+        <div>${f.desc}<br><span style="color:var(--text-muted)">${f.vals}</span></div>
+      `).join('')}
+    </div>
+    <div style="padding:10px;background:var(--accent-dim);border-radius:4px;color:var(--accent);font-size:12px;margin-top:8px;line-height:1.6">
+      <strong>Secciones disponibles:</strong><br>
+      ${getAllSections().map(s=>`<span style="margin-right:10px"><strong>${s.code}</strong> ${s.name}</span>`).join('')}
+    </div>
+  </details>
+
+  <div style="display:flex;gap:8px;margin-bottom:16px">
+    <button class="btn btn-secondary" style="flex:1" onclick="downloadTemplate()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+      Descargar plantilla Excel (.xlsx)
+    </button>
+  </div>
+
+  <div class="photo-upload-area" onclick="document.getElementById('import-file-inp').click()" style="padding:28px">
+    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" style="color:var(--text-muted);margin-bottom:10px"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+    <div style="font-size:14px;font-weight:500;color:var(--text-muted)">Seleccionar archivo de tu biblioteca</div>
+    <div style="font-size:12px;color:var(--text-muted);margin-top:4px">Formatos aceptados: <strong>.xlsx · .xls · .csv</strong></div>
+  </div>
+  <input type="file" id="import-file-inp" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleImportFile(this)">`;
+}
+
+async function handleImportFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const stateEl = document.getElementById('import-state');
+  stateEl.innerHTML = `<div style="padding:30px;text-align:center;color:var(--text-muted)">
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom:10px;opacity:.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+    <div>Leyendo <strong>${esc(file.name)}</strong>…</div>
+  </div>`;
+  try {
+    const buf = await file.arrayBuffer();
+    const wb  = XLSX.read(buf, {type:'array'});
+    const ws  = wb.Sheets[wb.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(ws, {defval:'', raw:false});
+    if (!rows.length) {
+      stateEl.innerHTML = `<div style="color:var(--danger);padding:16px">El archivo está vacío o no tiene filas con datos.</div>`;
+      return;
+    }
+    window._importRows = rows;
+    showImportPreview(rows);
+  } catch(e) {
+    stateEl.innerHTML = `<div style="color:var(--danger);padding:16px">Error al leer el archivo: ${esc(e.message)}</div>`;
+  }
+}
+
+// Normaliza cadena: minúsculas, sin tildes, sin caracteres especiales
+function normStr(s) {
+  return String(s).toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')   // quita diacríticos (unicode explícito)
+    .replace(/[^a-z0-9 ]/g, '').trim();
+}
+
+// Normalización "neutral en género": quita terminación -o/-a/-os/-as de palabras > 4 letras
+// para que "latinoamericano" y "latinoamericana" sean equivalentes
+function normStem(s) {
+  return normStr(s).split(' ').map(w => w.length > 4 ? w.replace(/[oa]s?$/, '') : w).join(' ');
+}
+
+function detectMapping(headers) {
+  const map = {};
+  // Pre-normalizar alias una sola vez
+  const normAliases = {};
+  for (const [field, aliases] of Object.entries(FIELD_ALIASES)) {
+    normAliases[field] = aliases.map(normStr);
+  }
+
+  // ── PASO 1: solo coincidencias EXACTAS (mayor prioridad, evita conflictos)
+  headers.forEach(h => {
+    const norm = normStr(h);
+    for (const [field] of Object.entries(FIELD_ALIASES)) {
+      if (!map[field] && normAliases[field].includes(norm)) map[field] = h;
+    }
+  });
+
+  // ── PASO 2: coincidencias PARCIALES (solo campos aún sin detectar)
+  headers.forEach(h => {
+    const norm = normStr(h);
+    for (const [field] of Object.entries(FIELD_ALIASES)) {
+      if (map[field]) continue;
+      const na = normAliases[field];
+      // el encabezado contiene un alias de ≥5 chars
+      if (na.some(a => a.length >= 5 && norm.includes(a))) { map[field] = h; continue; }
+      // un alias contiene el encabezado (ej. "sec" dentro de "seccion")
+      if (norm.length >= 4 && na.some(a => a.includes(norm))) { map[field] = h; }
+    }
+  });
+
+  return map;
+}
+
+function showImportPreview(rows) {
+  const headers = Object.keys(rows[0]);
+  const map = detectMapping(headers);
+  window._importMapping = map;
+
+  const hasTitle   = !!map.title;
+  const hasAuthor  = !!map.author;
+  const hasSec     = !!map.section;
+  const hasShelf   = !!map.shelf;
+  const hasPos     = !!map.position;
+  const hasAcqDate = !!map.acquisitionDate;
+  const canImport  = hasTitle && hasAuthor && hasShelf && hasPos && hasAcqDate;
+  const preview    = rows.slice(0,6);
+  const colsToShow = ['title','author','section','shelf','position','acquisitionDate','publisher','year'].filter(f=>map[f]);
+
+  document.getElementById('import-state').innerHTML = `
+    <div style="margin-bottom:14px">
+      <div style="font-size:13px;font-weight:600;margin-bottom:10px">
+        📄 <strong>${esc(String(rows.length))}</strong> libros encontrados en el archivo
+      </div>
+      <div class="import-col-map">
+        <span class="col-chip ${hasTitle?'ok':'err'}">${hasTitle?'✓':'✗'} Título → ${map.title||'no detectado'}</span>
+        <span class="col-chip ${hasAuthor?'ok':'err'}">${hasAuthor?'✓':'✗'} Autor → ${map.author||'no detectado'}</span>
+        <span class="col-chip ${hasSec?'ok':'warn'}">${hasSec?'✓':'⚠'} Sección → ${map.section||'no detectada (se asignará OT — Otros)'}</span>
+        <span class="col-chip ${hasShelf?'ok':'err'}">${hasShelf?'✓':'✗'} Estante → ${map.shelf||'no detectado'}</span>
+        <span class="col-chip ${hasPos?'ok':'err'}">${hasPos?'✓':'✗'} Posición → ${map.position||'no detectada'}</span>
+        <span class="col-chip ${hasAcqDate?'ok':'err'}">${hasAcqDate?'✓':'✗'} Fecha ingreso → ${map.acquisitionDate||'no detectada'}</span>
+        ${map.publisher?`<span class="col-chip ok">✓ Editorial → ${map.publisher}</span>`:''}
+        ${map.year     ?`<span class="col-chip ok">✓ Año → ${map.year}</span>`:''}
+        ${map.isbn     ?`<span class="col-chip ok">✓ ISBN → ${map.isbn}</span>`:''}
+        ${map.language ?`<span class="col-chip ok">✓ Idioma → ${map.language}</span>`:''}
+        ${map.pages    ?`<span class="col-chip ok">✓ Páginas → ${map.pages}</span>`:''}
+        ${map.condition?`<span class="col-chip ok">✓ Estado → ${map.condition}</span>`:''}
+        ${map.notes    ?`<span class="col-chip ok">✓ Notas → ${map.notes}</span>`:''}
+      </div>
+      ${!canImport?`<div style="background:var(--danger-dim);color:var(--danger);border-radius:4px;padding:10px 14px;font-size:12px;line-height:1.7;margin-bottom:10px">
+        <strong>Faltan columnas obligatorias.</strong><br>
+        ${!hasTitle  ?'• Columna de <strong>Título</strong> no encontrada. Encabezado esperado: <code>Titulo</code> o <code>Title</code>.<br>':''}
+        ${!hasAuthor ?'• Columna de <strong>Autor</strong> no encontrada. Encabezado esperado: <code>Autor</code> o <code>Author</code>.<br>':''}
+        ${!hasShelf  ?'• Columna de <strong>Estante</strong> no encontrada. Encabezado esperado: <code>Estante</code> o <code>Shelf</code>.<br>':''}
+        ${!hasPos    ?'• Columna de <strong>Posición</strong> no encontrada. Encabezado esperado: <code>Posicion</code> o <code>Position</code>.<br>':''}
+        ${!hasAcqDate?'• Columna de <strong>Fecha ingreso</strong> no encontrada. Encabezado esperado: <code>Fecha ingreso</code> o <code>Fecha de ingreso</code>.<br>':''}
+        Renombra las columnas en tu Excel, guarda y vuelve a subir el archivo.
+      </div>`:''}
+    </div>
+
+    <div style="font-size:11px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">Vista previa — primeros ${preview.length} registros</div>
+    <div style="overflow-x:auto;max-height:200px;overflow-y:auto;border:1px solid var(--border);border-radius:4px;margin-bottom:16px">
+      <table class="import-preview-table">
+        <thead><tr>
+          ${colsToShow.map(f=>`<th>${esc(map[f])}</th>`).join('')}
+        </tr></thead>
+        <tbody>
+          ${preview.map(r=>`<tr>
+            ${colsToShow.map(f=>`<td title="${esc(String(r[map[f]]||''))}">${esc(String(r[map[f]]||'—').slice(0,40))}</td>`).join('')}
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+
+    <div style="display:flex;gap:8px;justify-content:space-between;align-items:center">
+      <button class="btn btn-ghost" onclick="document.getElementById('import-state').innerHTML=renderImportStep1()">← Atrás</button>
+      <div style="display:flex;gap:8px">
+        ${canImport?`<button class="btn btn-primary" onclick="confirmImport()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          Importar ${rows.length} libros
+        </button>`:`<button class="btn btn-primary" disabled>Importar (faltan campos)</button>`}
+      </div>
+    </div>`;
+}
+
+// ─── Genera el siguiente código de sección disponible ─────────────────────────
+function nextAvailSecCode() {
+  const used = new Set(getAllSections().map(s => s.code));
+  for (let c = 65; c <= 90; c++) {
+    const code = String.fromCharCode(c);
+    if (!used.has(code)) return code;
+  }
+  // Si A-Z están todos usados, prueba AA, AB…
+  for (let c1 = 65; c1 <= 90; c1++)
+    for (let c2 = 65; c2 <= 90; c2++) {
+      const code = String.fromCharCode(c1) + String.fromCharCode(c2);
+      if (!used.has(code)) return code;
+    }
+  return 'XX';
+}
+
+// ─── Paleta de colores para secciones auto-creadas ────────────────────────────
+const AUTO_COLORS = ['#5B4A8B','#3A6B5B','#7A3D1A','#1A5C6B','#6B3A5B','#2D5A2D',
+                     '#8B5A1A','#1A3D6B','#5B1A3D','#3D5A1A','#6B1A2D','#1A5B5B'];
+
+// ─── Resuelve el código de sección a partir del valor del Excel ───────────────
+function resolveImportSection(rawSec, autoSecMap) {
+  if (!rawSec) return 'O';
+  const rawUp  = rawSec.toUpperCase().trim();
+  const allS   = getAllSections();
+
+  // 1. Código exacto (A, B, … o código personalizado de 2-3 chars)
+  let s = allS.find(x => rawUp === x.code);
+  if (s) return s.code;
+
+  // 2. Empieza con código + separador ("A - Novela", "A: algo")
+  s = allS.find(x => rawUp.startsWith(x.code+' ') || rawUp.startsWith(x.code+'-') ||
+                      rawUp.startsWith(x.code+':') || rawUp.startsWith(x.code+'.'));
+  if (s) return s.code;
+
+  // 3. Nombre exacto normalizado (sin tildes, sin importar mayúsculas)
+  const normRaw  = normStr(rawSec);
+  s = allS.find(x => normStr(x.name) === normRaw);
+  if (s) return s.code;
+
+  // 4. Nombre exacto "neutro en género" (latinoamericano ≈ latinoamericana)
+  const stemRaw = normStem(rawSec);
+  s = allS.find(x => normStem(x.name) === stemRaw);
+  if (s) return s.code;
+
+  // 5. Contención parcial: el nombre de sección contiene el valor o viceversa
+  s = allS.find(x => {
+    const nname = normStr(x.name), nraw = normRaw;
+    return nname.length > 4 && (nraw.includes(nname) || nname.includes(nraw));
+  });
+  if (s) return s.code;
+
+  // 6. Contención parcial con normalización neutra
+  s = allS.find(x => {
+    const sname = normStem(x.name), sraw = stemRaw;
+    return sname.length > 4 && (sraw.includes(sname) || sname.includes(sraw));
+  });
+  if (s) return s.code;
+
+  // 7. Coincidencia por palabras clave compartidas (≥ 2 palabras de >4 letras en común)
+  const rawWords = normRaw.split(' ').filter(w => w.length > 4);
+  s = allS.find(x => {
+    const sWords = normStr(x.name).split(' ').filter(w => w.length > 4);
+    return rawWords.filter(w => sWords.includes(w)).length >= 1 && rawWords.length > 0;
+  });
+  if (s) return s.code;
+
+  // 8. Auto-crear sección personalizada para nombres no reconocidos
+  const key = normRaw;
+  if (!autoSecMap[key]) {
+    const code  = nextAvailSecCode();
+    const color = AUTO_COLORS[Object.keys(autoSecMap).length % AUTO_COLORS.length];
+    const name  = rawSec.trim();
+    const short = name.split(' ').slice(0,2).join(' ');
+    DB.addSection({ code, name, short, color });
+    DB._s = null; // invalidar caché de secciones
+    autoSecMap[key] = code;
+  }
+  return autoSecMap[key];
+}
+
+function confirmImport() {
+  const rows = window._importRows;
+  const map  = window._importMapping;
+  if (!rows || !map) return;
+
+  const autoSecMap = {}; // nombre normalizado → código auto-creado
+  let imported = 0, skippedBase = 0, skippedLoc = 0, skippedDate = 0;
+
+  rows.forEach(r => {
+    const title  = String(r[map.title]  || '').trim();
+    const author = String(r[map.author] || '').trim();
+    if (!title || !author) { skippedBase++; return; }
+
+    const shelf = parseInt(r[map.shelf])    || 0;
+    const pos   = parseInt(r[map.position]) || 0;
+    if (!shelf || !pos) { skippedLoc++; return; }
+
+    const acqDate = String(r[map.acquisitionDate] || '').trim();
+    if (!acqDate) { skippedDate++; return; }
+
+    const rawSec  = map.section ? String(r[map.section] || '').trim() : '';
+    const section = resolveImportSection(rawSec, autoSecMap);
+
+    DB.addBook({
+      title, author, section, shelf, position: pos,
+      locationCode: locCode(section, shelf, pos),
+      coauthors:       String(r[map.coauthors]  || '').trim(),
+      publisher:       String(r[map.publisher]  || '').trim(),
+      year:            String(r[map.year]       || '').trim(),
+      isbn:            String(r[map.isbn]       || '').trim(),
+      language:        String(r[map.language]   || 'Español').trim() || 'Español',
+      pages:           String(r[map.pages]      || '').trim(),
+      coverType:       String(r[map.coverType]  || 'Pasta blanda').trim(),
+      condition:       String(r[map.condition]  || 'Bueno').trim(),
+      acquisitionDate: acqDate,
+      notes:           String(r[map.notes]      || '').trim(),
+      coverImage: '',
+    });
+    imported++;
+  });
+
+  closeImportModal();
+  updateSidebarStats();
+  const newSecCount = Object.keys(autoSecMap).length;
+  const skipped = skippedBase + skippedLoc + skippedDate;
+  let msg = `✓ ${imported} libro${imported!==1?'s':''} importado${imported!==1?'s':''}`;
+  if (skippedBase)  msg += ` · ${skippedBase} omitido${skippedBase!==1?'s':''} (sin título/autor)`;
+  if (skippedLoc)   msg += ` · ${skippedLoc} omitido${skippedLoc!==1?'s':''} (sin ubicación)`;
+  if (skippedDate)  msg += ` · ${skippedDate} omitido${skippedDate!==1?'s':''} (sin fecha de ingreso)`;
+  if (newSecCount)  msg += ` · ${newSecCount} sección${newSecCount!==1?'es':''} nueva${newSecCount!==1?'s':''} creada${newSecCount!==1?'s':''} automáticamente`;
+  toast(msg, 6000);
+  navigate('catalog');
+}
+
+function downloadTemplate() {
+  if (typeof XLSX === 'undefined') {
+    // Fallback CSV
+    const csv = '﻿Titulo,Autor,Seccion,Estante,Posicion,Fecha ingreso,Editorial,Año,ISBN,Idioma,Paginas,Encuadernacion,Estado,Notas,Coautores\n'
+      + '"Cien años de soledad","García Márquez, Gabriel",NC,1,1,2024-03-15,"Editorial Sudamericana",1967,9789584248008,Español,471,"Pasta blanda",Bueno,"Primera edición",""';
+    const a = document.createElement('a');
+    a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+    a.download = 'plantilla-biblioteca.csv'; a.click();
+    return;
+  }
+
+  const wb = XLSX.utils.book_new();
+
+  // Hoja 1: Datos
+  const headers = ['Titulo','Autor','Seccion','Estante','Posicion','Fecha ingreso','Editorial','Año','ISBN','Idioma','Paginas','Encuadernacion','Estado','Notas','Coautores'];
+  const example = ['Cien años de soledad','García Márquez, Gabriel','NC',1,1,'2024-03-15','Editorial Sudamericana',1967,'9789584248008','Español',471,'Pasta blanda','Bueno','Primera edición',''];
+  const wsData  = XLSX.utils.aoa_to_sheet([headers, example]);
+  wsData['!cols'] = [
+    {wch:32},{wch:26},{wch:9},{wch:8},{wch:9},{wch:14},{wch:22},{wch:7},
+    {wch:15},{wch:10},{wch:9},{wch:17},{wch:13},{wch:30},{wch:20}
+  ];
+  XLSX.utils.book_append_sheet(wb, wsData, 'Libros');
+
+  // Hoja 2: Instrucciones
+  const instrRows = [
+    ['INSTRUCCIONES DE USO — Plantilla Mi Biblioteca'],
+    [''],
+    ['Campo','Obligatorio','Descripción','Valores aceptados'],
+    ...FIELD_DOCS.map(f => [f.field, f.req?'SÍ':'No', f.desc, f.vals]),
+    [''],
+    ['SECCIONES DISPONIBLES','','',''],
+    ...getAllSections().map(s => [s.code, s.name,'','']),
+    [''],
+    ['NOTAS IMPORTANTES','','',''],
+    ['• Campos OBLIGATORIOS: Titulo, Autor, Estante, Posicion y Fecha ingreso. Las filas sin estos datos serán ignoradas.','','',''],
+    ['• La columna Seccion acepta: código (NC), nombre completo (Novela Colombiana) o código+nombre (NC - Novela Colombiana). No es obligatoria pero sí muy recomendada.','','',''],
+    ['• Si Seccion no se reconoce, el libro se asignará automáticamente a OT (Otros).','','',''],
+    ['• El sistema acepta encabezados en español e inglés, con o sin tildes.','','',''],
+    ['• Guarda el archivo como .xlsx o .csv antes de importarlo.','','',''],
+  ];
+  const wsInstr = XLSX.utils.aoa_to_sheet(instrRows);
+  wsInstr['!cols'] = [{wch:20},{wch:12},{wch:38},{wch:55}];
+  XLSX.utils.book_append_sheet(wb, wsInstr, 'Instrucciones');
+
+  XLSX.writeFile(wb, 'plantilla-mi-biblioteca.xlsx');
+  toast('Plantilla descargada. Ábrela en Excel, llena los datos y luego impórtala aquí.');
+}
+
+// ─────────────────────────────────────────────────────
+// AUTO-LOGIN AND INITIALIZATION
+// ─────────────────────────────────────────────────────
+(async () => {
+  const { onAuthStateChanged, signInAnonymously } = window.firebaseReady;
+  const auth = window.firebaseReady.auth;
+
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      appState.userId = user.uid;
+      DB._loadedBooks = false;
+      DB._loadedLoans = false;
+      DB._loadedSections = false;
+      await DB.books();
+      await DB.loans();
+      await DB.sections();
+      renderView();
+    } else {
+      try {
+        await signInAnonymously(auth);
+      } catch(e) {
+        console.error('Error auto-login:', e);
+      }
+    }
+  });
+})();
+
+// ─────────────────────────────────────────────────────
+// SECTION MANAGEMENT
+// ─────────────────────────────────────────────────────
+let _secEditCode = null; // null = create mode, string = edit mode
+
+function openSectionModal(editCode) {
+  _secEditCode = editCode || null;
+  const modal = document.getElementById('sec-modal');
+  const titleEl = document.getElementById('sec-modal-title');
+  const codeInp = document.getElementById('sec-code');
+  const nameInp = document.getElementById('sec-name');
+  const shortInp = document.getElementById('sec-short');
+  const colorInp = document.getElementById('sec-color');
+  const hexInp   = document.getElementById('sec-color-hex');
+  const errEl    = document.getElementById('sec-error');
+
+  errEl.style.display = 'none';
+
+  if (editCode) {
+    const s = getAllSections().find(x => x.code === editCode);
+    titleEl.textContent = 'Editar sección';
+    codeInp.value  = s.code;
+    codeInp.disabled = true; // code is the primary key — don't allow change
+    nameInp.value  = s.name;
+    shortInp.value = s.short || '';
+    colorInp.value = s.color;
+    hexInp.value   = s.color;
+  } else {
+    titleEl.textContent = 'Nueva sección';
+    codeInp.value  = '';
+    codeInp.disabled = false;
+    nameInp.value  = '';
+    shortInp.value = '';
+    colorInp.value = '#2D5A8E';
+    hexInp.value   = '#2D5A8E';
+  }
+  previewSectionCard();
+  modal.style.display = 'flex';
+  setTimeout(() => (editCode ? nameInp : codeInp).focus(), 80);
+}
+
+function closeSectionModal() {
+  document.getElementById('sec-modal').style.display = 'none';
+  _secEditCode = null;
+}
+
+function syncColorHex(val) {
+  if (/^#[0-9A-Fa-f]{6}$/.test(val)) {
+    document.getElementById('sec-color').value = val;
+    previewSectionCard();
+  }
+}
+
+function previewSectionCard() {
+  const code  = (document.getElementById('sec-code').value || 'P').toUpperCase();
+  const name  = document.getElementById('sec-name').value || 'Nueva sección';
+  const color = document.getElementById('sec-color').value || '#2D5A8E';
+  document.getElementById('sec-color-hex').value = color;
+  document.getElementById('sec-prev-code').textContent = code;
+  document.getElementById('sec-prev-code').style.background = color;
+  document.getElementById('sec-prev-name').textContent = name;
+  document.getElementById('sec-prev-bar').style.background = color;
+}
+
+function saveSectionModal() {
+  const code  = document.getElementById('sec-code').value.trim().toUpperCase();
+  const name  = document.getElementById('sec-name').value.trim();
+  const short = document.getElementById('sec-short').value.trim() || name.split(' ').slice(0,2).join(' ');
+  const color = document.getElementById('sec-color').value;
+  const errEl = document.getElementById('sec-error');
+
+  // Validation
+  if (!code || !/^[A-Z0-9]{1,3}$/.test(code)) {
+    showSecError('El código debe tener 1–3 letras o números (sin espacios ni tildes).'); return;
+  }
+  if (!name) {
+    showSecError('El nombre de la sección es obligatorio.'); return;
+  }
+
+  if (_secEditCode) {
+    // Edit mode — update the custom section
+    DB.updateSection(_secEditCode, { name, short, color });
+    toast(`Sección ${_secEditCode} actualizada.`);
+  } else {
+    // Create mode — check code is unique
+    if (getAllSections().some(s => s.code === code)) {
+      showSecError(`El código "${code}" ya está en uso. Elige uno diferente.`); return;
+    }
+    DB.addSection({ code, name, short, color });
+    toast(`Sección ${code} — ${name} creada correctamente.`);
+  }
+
+  closeSectionModal();
+  updateSidebarStats();
+  renderView();
+}
+
+function showSecError(msg) {
+  const el = document.getElementById('sec-error');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+function deleteCustomSection(code) {
+  // Safety: don't delete a default section
+  if (SECTIONS.some(s => s.code === code)) {
+    toast('Las secciones predefinidas no se pueden eliminar.'); return;
+  }
+  const s = DB.sections().find(x => x.code === code);
+  if (!s) return;
+
+  const booksInSec = DB.books().filter(b => b.section === code).length;
+  const warning = booksInSec > 0
+    ? `\n\nAtención: hay ${booksInSec} libro${booksInSec!==1?'s':''} en esta sección. Quedarán asignados a "O — Varios" si continúas.`
+    : '';
+
+  if (!confirm(`¿Eliminar la sección "${code} — ${s.name}"?${warning}`)) return;
+
+  // Re-assign affected books to 'O'
+  if (booksInSec > 0) {
+    DB.books().filter(b => b.section === code).forEach(b => {
+      DB.updateBook(b.id, { section: 'OT', locationCode: locCode('OT', b.shelf, b.position) });
+    });
+  }
+
+  DB.deleteSection(code);
+  toast(`Sección ${code} eliminada.`);
+  updateSidebarStats();
+  renderView();
+}
+
+// ─────────────────────────────────────────────────────
+// BULK SELECT & DELETE
+// ─────────────────────────────────────────────────────
+function getSelectedIds() {
+  return [...document.querySelectorAll('.book-chk:checked')].map(el => el.dataset.id);
+}
+
+function toggleSelectAll(checked) {
+  document.querySelectorAll('.book-chk').forEach(el => el.checked = checked);
+  updateBulkBar();
+}
+
+function updateBulkBar() {
+  const ids = getSelectedIds();
+  const bar = document.getElementById('bulk-bar');
+  const cnt = document.getElementById('bulk-count');
+  if (bar) bar.classList.toggle('hidden', ids.length === 0);
+  if (cnt) {
+    const n = ids.length;
+    cnt.textContent = `${n} libro${n !== 1 ? 's' : ''} seleccionado${n !== 1 ? 's' : ''}`;
+  }
+  // Update master checkbox state
+  const all = document.querySelectorAll('.book-chk');
+  const chkAll = document.getElementById('chk-all');
+  if (chkAll) {
+    chkAll.checked = ids.length === all.length && all.length > 0;
+    chkAll.indeterminate = ids.length > 0 && ids.length < all.length;
+  }
+}
+
+function clearSelection() {
+  document.querySelectorAll('.book-chk').forEach(el => el.checked = false);
+  const chkAll = document.getElementById('chk-all');
+  if (chkAll) { chkAll.checked = false; chkAll.indeterminate = false; }
+  updateBulkBar();
+}
+
+function openBulkDeleteModal() {
+  const ids = getSelectedIds();
+  if (ids.length === 0) return;
+  const books = DB.books();
+  const selected = ids.map(id => books.find(b => b.id === id)).filter(Boolean);
+
+  // Populate count label
+  const n = selected.length;
+  document.getElementById('bdm-count').textContent =
+    `${n} libro${n !== 1 ? 's' : ''}`;
+
+  // Populate book list
+  const listEl = document.getElementById('bdm-list');
+  listEl.innerHTML = selected.map(b => {
+    const loc = [b.section, b.shelf, b.position].filter(Boolean).join('-');
+    return `<div style="padding:4px 0;border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:baseline">
+      <span style="font-weight:600;flex:1">${esc(b.title)}</span>
+      <span style="color:var(--text-muted);font-size:12px;white-space:nowrap">${esc(b.author||'')}${loc?' · '+loc:''}</span>
+    </div>`;
+  }).join('') + (selected.length === 0 ? '<em>Sin libros seleccionados</em>' : '');
+
+  // Reset confirmation input
+  const inp = document.getElementById('bdm-confirm-input');
+  const btn = document.getElementById('bdm-confirm-btn');
+  inp.value = '';
+  btn.disabled = true;
+  btn.style.opacity = '.45';
+  btn.style.cursor = 'not-allowed';
+
+  document.getElementById('bulk-del-modal').style.display = 'flex';
+}
+
+function closeBulkDeleteModal() {
+  document.getElementById('bulk-del-modal').style.display = 'none';
+}
+
+function validateBulkConfirm() {
+  const inp = document.getElementById('bdm-confirm-input');
+  const btn = document.getElementById('bdm-confirm-btn');
+  const ok = inp.value.trim().toUpperCase() === 'ELIMINAR';
+  btn.disabled = !ok;
+  btn.style.opacity = ok ? '1' : '.45';
+  btn.style.cursor = ok ? 'pointer' : 'not-allowed';
+}
+
+function confirmBulkDelete() {
+  const inp = document.getElementById('bdm-confirm-input');
+  if (inp.value.trim().toUpperCase() !== 'ELIMINAR') return;
+
+  const ids = getSelectedIds();
+  if (ids.length === 0) return;
+
+  // Cancel any active loans for these books
+  const loans = DB.loans();
+  ids.forEach(id => {
+    const loan = DB.bookLoan(id);
+    if (loan) DB.updateLoan(loan.id, { status: 'cancelled' });
+  });
+
+  // Delete each book
+  ids.forEach(id => DB.deleteBook(id));
+
+  closeBulkDeleteModal();
+  clearSelection();
+
+  const n = ids.length;
+  toast(`${n} libro${n !== 1 ? 's' : ''} eliminado${n !== 1 ? 's' : ''} correctamente.`);
+  updateSidebarStats();
+  renderView();
+}
+
+// ─────────────────────────────────────────────────────
+// NAV CLICK
 // ─────────────────────────────────────────────────────
 document.querySelectorAll('.nav-item').forEach(el => {
   el.addEventListener('click', () => navigate(el.dataset.view));
@@ -771,12 +3334,7 @@ document.querySelectorAll('.nav-item').forEach(el => {
 // ─────────────────────────────────────────────────────
 // INIT
 // ─────────────────────────────────────────────────────
-(async () => {
-  await loadAllData();
-  navigate('dashboard');
-  updateAuthButton();
-})();
+loadSampleData();
+updateSidebarStats();
+renderView();
 </script>
-
-</body>
-</html>
