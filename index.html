@@ -963,27 +963,25 @@ const state = {
 let appState = { userId: null, books: [], loans: [], sections: [] };
 
 const DB = {
-  _loadedBooks: false,
-  _loadedLoans: false,
-  _loadedSections: false,
+  books() { return appState.books; },
+  loans() { return appState.loans; },
+  activeLoans() { return appState.loans.filter(l => l.status === 'active'); },
+  bookLoan(bookId) { return appState.loans.find(l => l.bookId === bookId && l.status === 'active'); },
+  sections() { return appState.sections; },
 
-  async books() {
-    if (!appState.userId) return [];
-    if (!this._loadedBooks) {
-      try {
-        const { getDocs, collection, query, where } = window.firebaseReady;
-        const db = window.firebaseReady.db;
-        const q = query(collection(db, 'books'), where('userId', '==', appState.userId));
-        const snap = await getDocs(q);
-        appState.books = snap.docs.map(d => ({id: d.id, ...d.data()}));
-        this._loadedBooks = true;
-      } catch(e) { console.error(e); }
-    }
-    return appState.books;
+  async syncBooks() {
+    if (!appState.userId || !window.firebaseReady) return;
+    try {
+      const { getDocs, collection, query, where } = window.firebaseReady;
+      const db = window.firebaseReady.db;
+      const q = query(collection(db, 'books'), where('userId', '==', appState.userId));
+      const snap = await getDocs(q);
+      appState.books = snap.docs.map(d => ({id: d.id, ...d.data()}));
+    } catch(e) { console.error('syncBooks error:', e); }
   },
 
   async addBook(b) {
-    if (!appState.userId) return;
+    if (!appState.userId || !window.firebaseReady) return;
     b.id = uid(); b.dateAdded = new Date().toISOString(); b.userId = appState.userId;
     const { setDoc, doc } = window.firebaseReady;
     const db = window.firebaseReady.db;
@@ -991,47 +989,43 @@ const DB = {
       await setDoc(doc(db, 'books', b.id), b);
       appState.books.unshift(b);
       return b;
-    } catch(e) { console.error(e); }
+    } catch(e) { console.error('addBook error:', e); }
   },
 
   async updateBook(id, data) {
-    if (!appState.userId) return;
+    if (!appState.userId || !window.firebaseReady) return;
     const { updateDoc, doc } = window.firebaseReady;
     const db = window.firebaseReady.db;
     try {
       await updateDoc(doc(db, 'books', id), data);
       const i = appState.books.findIndex(x => x.id === id);
       if (i >= 0) appState.books[i] = {...appState.books[i], ...data};
-    } catch(e) { console.error(e); }
+    } catch(e) { console.error('updateBook error:', e); }
   },
 
   async deleteBook(id) {
-    if (!appState.userId) return;
+    if (!appState.userId || !window.firebaseReady) return;
     const { deleteDoc, doc } = window.firebaseReady;
     const db = window.firebaseReady.db;
     try {
       await deleteDoc(doc(db, 'books', id));
       appState.books = appState.books.filter(x => x.id !== id);
-    } catch(e) { console.error(e); }
+    } catch(e) { console.error('deleteBook error:', e); }
   },
 
-  async loans() {
-    if (!appState.userId) return [];
-    if (!this._loadedLoans) {
-      try {
-        const { getDocs, collection, query, where } = window.firebaseReady;
-        const db = window.firebaseReady.db;
-        const q = query(collection(db, 'loans'), where('userId', '==', appState.userId));
-        const snap = await getDocs(q);
-        appState.loans = snap.docs.map(d => ({id: d.id, ...d.data()}));
-        this._loadedLoans = true;
-      } catch(e) { console.error(e); }
-    }
-    return appState.loans;
+  async syncLoans() {
+    if (!appState.userId || !window.firebaseReady) return;
+    try {
+      const { getDocs, collection, query, where } = window.firebaseReady;
+      const db = window.firebaseReady.db;
+      const q = query(collection(db, 'loans'), where('userId', '==', appState.userId));
+      const snap = await getDocs(q);
+      appState.loans = snap.docs.map(d => ({id: d.id, ...d.data()}));
+    } catch(e) { console.error('syncLoans error:', e); }
   },
 
   async addLoan(l) {
-    if (!appState.userId) return;
+    if (!appState.userId || !window.firebaseReady) return;
     l.id = uid(); l.created = new Date().toISOString(); l.userId = appState.userId;
     const { setDoc, doc } = window.firebaseReady;
     const db = window.firebaseReady.db;
@@ -1039,68 +1033,61 @@ const DB = {
       await setDoc(doc(db, 'loans', l.id), l);
       appState.loans.unshift(l);
       return l;
-    } catch(e) { console.error(e); }
+    } catch(e) { console.error('addLoan error:', e); }
   },
 
   async updateLoan(id, data) {
-    if (!appState.userId) return;
+    if (!appState.userId || !window.firebaseReady) return;
     const { updateDoc, doc } = window.firebaseReady;
     const db = window.firebaseReady.db;
     try {
       await updateDoc(doc(db, 'loans', id), data);
       const i = appState.loans.findIndex(x => x.id === id);
       if (i >= 0) appState.loans[i] = {...appState.loans[i], ...data};
-    } catch(e) { console.error(e); }
+    } catch(e) { console.error('updateLoan error:', e); }
   },
 
-  activeLoans() { return appState.loans.filter(l => l.status === 'active'); },
-  bookLoan(bookId) { return appState.loans.find(l => l.bookId === bookId && l.status === 'active'); },
-
-  async sections() {
-    if (!appState.userId) return [];
-    if (!this._loadedSections) {
-      try {
-        const { getDocs, collection, query, where } = window.firebaseReady;
-        const db = window.firebaseReady.db;
-        const q = query(collection(db, 'sections'), where('userId', '==', appState.userId));
-        const snap = await getDocs(q);
-        appState.sections = snap.docs.map(d => ({code: d.id, ...d.data()}));
-        this._loadedSections = true;
-      } catch(e) { console.error(e); }
-    }
-    return appState.sections;
+  async syncSections() {
+    if (!appState.userId || !window.firebaseReady) return;
+    try {
+      const { getDocs, collection, query, where } = window.firebaseReady;
+      const db = window.firebaseReady.db;
+      const q = query(collection(db, 'sections'), where('userId', '==', appState.userId));
+      const snap = await getDocs(q);
+      appState.sections = snap.docs.map(d => ({code: d.id, ...d.data()}));
+    } catch(e) { console.error('syncSections error:', e); }
   },
 
   async addSection(s) {
-    if (!appState.userId) return;
+    if (!appState.userId || !window.firebaseReady) return;
     s.userId = appState.userId;
     const { setDoc, doc } = window.firebaseReady;
     const db = window.firebaseReady.db;
     try {
       await setDoc(doc(db, 'sections', s.code), s);
       appState.sections.push(s);
-    } catch(e) { console.error(e); }
+    } catch(e) { console.error('addSection error:', e); }
   },
 
   async updateSection(code, data) {
-    if (!appState.userId) return;
+    if (!appState.userId || !window.firebaseReady) return;
     const { updateDoc, doc } = window.firebaseReady;
     const db = window.firebaseReady.db;
     try {
       await updateDoc(doc(db, 'sections', code), data);
       const i = appState.sections.findIndex(x => x.code === code);
       if (i >= 0) appState.sections[i] = {...appState.sections[i], ...data};
-    } catch(e) { console.error(e); }
+    } catch(e) { console.error('updateSection error:', e); }
   },
 
   async deleteSection(code) {
-    if (!appState.userId) return;
+    if (!appState.userId || !window.firebaseReady) return;
     const { deleteDoc, doc } = window.firebaseReady;
     const db = window.firebaseReady.db;
     try {
       await deleteDoc(doc(db, 'sections', code));
       appState.sections = appState.sections.filter(x => x.code !== code);
-    } catch(e) { console.error(e); }
+    } catch(e) { console.error('deleteSection error:', e); }
   },
 };
 
@@ -3061,19 +3048,21 @@ function downloadTemplate() {
 // ─────────────────────────────────────────────────────
 // AUTO-LOGIN AND INITIALIZATION
 // ─────────────────────────────────────────────────────
-(async () => {
+setTimeout(async () => {
+  if (!window.firebaseReady) {
+    console.error('Firebase not ready');
+    return;
+  }
+
   const { onAuthStateChanged, signInAnonymously } = window.firebaseReady;
   const auth = window.firebaseReady.auth;
 
   onAuthStateChanged(auth, async (user) => {
     if (user) {
       appState.userId = user.uid;
-      DB._loadedBooks = false;
-      DB._loadedLoans = false;
-      DB._loadedSections = false;
-      await DB.books();
-      await DB.loans();
-      await DB.sections();
+      await DB.syncBooks();
+      await DB.syncLoans();
+      await DB.syncSections();
       renderView();
     } else {
       try {
@@ -3083,7 +3072,7 @@ function downloadTemplate() {
       }
     }
   });
-})();
+}, 500);
 
 // ─────────────────────────────────────────────────────
 // SECTION MANAGEMENT
