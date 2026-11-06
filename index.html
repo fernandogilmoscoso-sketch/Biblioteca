@@ -1279,15 +1279,14 @@ const firestoreAPI = {
   async deleteDocument(collectionName, docId) {
     try {
       const url = `${FIRESTORE_API}/${collectionName}/${docId}?key=${FIRESTORE_KEY}`;
-      console.log(`🗑️  DELETE → ${url}`);
       const resp = await fetch(url, { method: 'DELETE' });
-      const text = await resp.text();
-      console.log(`📤 Respuesta DELETE: ${resp.status}`, text);
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${text}`);
-      console.log(`✅ Eliminado en Firestore: ${collectionName}/${docId}`);
+      if (!resp.ok) {
+        const text = await resp.text();
+        throw new Error(`HTTP ${resp.status}: ${text}`);
+      }
       return true;
     } catch (e) {
-      console.error(`❌ Error eliminando ${collectionName}/${docId}:`, e.message);
+      console.error(`❌ Error DELETE ${collectionName}/${docId}:`, e.message);
       return false;
     }
   },
@@ -4117,16 +4116,22 @@ async function confirmBulkDelete() {
     if (loan) DB.updateLoan(loan.id, { status: 'cancelled' });
   });
 
-  // Delete each book (wait for all deletions)
+  // Delete each book (wait for all deletions, with delay to avoid rate limiting)
   for (const id of ids) {
     await DB.deleteBook(id);
+    await new Promise(r => setTimeout(r, 100)); // 100ms delay between deletions
   }
 
   closeBulkDeleteModal();
   clearSelection();
 
   const n = ids.length;
-  toast(`${n} libro${n !== 1 ? 's' : ''} eliminado${n !== 1 ? 's' : ''} correctamente.`);
+  toast(`⏳ Eliminando ${n} libro${n !== 1 ? 's' : ''}... (es lento para no saturar Firestore)`, 15000);
+
+  // Small delay to let Firestore stabilize
+  await new Promise(r => setTimeout(r, 500));
+
+  toast(`✓ ${n} libro${n !== 1 ? 's' : ''} eliminado${n !== 1 ? 's' : ''} de tu biblioteca y Firestore.`);
   updateSidebarStats();
   renderView();
 }
