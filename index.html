@@ -725,7 +725,7 @@ thead .row-check input[type=checkbox] { accent-color:var(--accent-fg); }
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
         Cerrar sesión
       </button>
-      <div style="font-size:9px;color:rgba(255,255,255,.4);text-align:center;margin-top:8px">v2.1 · await-save</div>
+      <div style="font-size:9px;color:rgba(255,255,255,.4);text-align:center;margin-top:8px">v2.2 · throttle+retry</div>
     </div>
   </aside>
 
@@ -1160,10 +1160,10 @@ async function forceResyncFromFirestore() {
   localStorage.removeItem('bib_books');
   localStorage.removeItem('bib_loans');
   localStorage.removeItem('bib_sections');
-  DB._b = null; DB._l = null; DB._s = null; DB._syncing = false;
+  DB._b = null; DB._l = null; DB._s = null; DB._syncing = false; DB._lastSync = 0;
   toast('⏳ Descargando datos desde Firestore...');
   try {
-    await DB.loadFromFirestore();
+    await DB.loadFromFirestore(true);
     const n = DB.books().length;
     toast(`✓ Sincronización completada: ${n} libro${n !== 1 ? 's' : ''} desde Firestore.`, 4000);
     updateSidebarStats();
@@ -1287,7 +1287,7 @@ const firestoreAPI = {
     }
   },
 
-  async setDocument(collectionName, docId, docData) {
+  async setDocument(collectionName, docId, docData, _attempt = 0) {
     try {
       const url = `${FIRESTORE_API}/${collectionName}/${docId}?key=${FIRESTORE_KEY}`;
       const fields = {};
@@ -1299,6 +1299,12 @@ const firestoreAPI = {
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({fields})
       });
+      if (resp.status === 429 && _attempt < 3) {
+        const wait = 1000 * Math.pow(2, _attempt); // 1s, 2s, 4s
+        console.warn(`⏳ 429 Too Many Requests. Reintentando en ${wait}ms...`);
+        await new Promise(r => setTimeout(r, wait));
+        return this.setDocument(collectionName, docId, docData, _attempt + 1);
+      }
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
       return true;
     } catch (e) {
@@ -1485,8 +1491,16 @@ const DB = {
   },
 
   // ── Firestore Sync ───────────────────────────────────
-  async loadFromFirestore() {
+  _lastSync: 0,
+  async loadFromFirestore(force = false) {
     if (this._syncing) return;
+    // Throttle: no sincronizar más de una vez cada 30 segundos, salvo que se fuerce
+    const now = Date.now();
+    if (!force && (now - this._lastSync) < 30000) {
+      console.log('⏭️ Sincronización omitida (muy reciente).');
+      return;
+    }
+    this._lastSync = now;
     this._syncing = true;
     try {
       const booksDocs = await firestoreAPI.getCollection('books');
