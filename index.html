@@ -717,10 +717,15 @@ thead .row-check input[type=checkbox] { accent-color:var(--accent-fg); }
       <div class="sidebar-stat-row"><span>Vencidos</span><span class="sidebar-stat-val" id="sb-overdue">0</span></div>
     </div>
     <div style="padding:12px 18px;border-top:1px solid rgba(255,255,255,.08)">
+      <button class="nav-item" onclick="forceResyncFromFirestore()" style="color:#8FD3C7;margin-left:-9px;padding-left:18px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+        Sincronizar ahora
+      </button>
       <button class="nav-item" onclick="logout()" style="color:#ff6b6b;margin-left:-9px;padding-left:18px">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
         Cerrar sesión
       </button>
+      <div style="font-size:9px;color:rgba(255,255,255,.4);text-align:center;margin-top:8px">v2.0 · sync</div>
     </div>
   </aside>
 
@@ -1147,6 +1152,26 @@ function checkLogin() {
   // Siempre mostrar login al abrir la app
   document.getElementById('app').style.display = 'none';
   document.getElementById('login-modal').style.display = 'flex';
+}
+
+async function forceResyncFromFirestore() {
+  if (!confirm('Esto descartará los datos locales de este dispositivo y descargará todo desde Firestore. ¿Continuar?')) return;
+  // Limpiar localStorage y caché en memoria
+  localStorage.removeItem('bib_books');
+  localStorage.removeItem('bib_loans');
+  localStorage.removeItem('bib_sections');
+  DB._b = null; DB._l = null; DB._s = null; DB._syncing = false;
+  toast('⏳ Descargando datos desde Firestore...');
+  try {
+    await DB.loadFromFirestore();
+    const n = DB.books().length;
+    toast(`✓ Sincronización completada: ${n} libro${n !== 1 ? 's' : ''} desde Firestore.`, 4000);
+    updateSidebarStats();
+    renderView();
+  } catch (e) {
+    toast('✗ Error al sincronizar: ' + e.message, 5000);
+    console.error(e);
+  }
 }
 
 function logout() {
