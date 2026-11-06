@@ -4111,29 +4111,21 @@ async function confirmBulkDelete() {
   const ids = getSelectedIds();
   if (ids.length === 0) return;
 
-  // Cancel any active loans for these books
-  const loans = DB.loans();
-  ids.forEach(id => {
-    const loan = DB.bookLoan(id);
-    if (loan) DB.updateLoan(loan.id, { status: 'cancelled' });
-  });
 
-  // Delete each book (wait for all deletions, with delay to avoid rate limiting)
-  for (const id of ids) {
-    await DB.deleteBook(id);
-    await new Promise(r => setTimeout(r, 100)); // 100ms delay between deletions
+  // Delete each book ONE BY ONE with delay to respect Firestore rate limits
+  for (let i = 0; i < ids.length; i++) {
+    await DB.deleteBook(ids[i]);
+    if (i < ids.length - 1) {
+      await new Promise(r => setTimeout(r, 300)); // 300ms delay between deletions
+    }
   }
 
   closeBulkDeleteModal();
   clearSelection();
 
   const n = ids.length;
-  toast(`⏳ Eliminando ${n} libro${n !== 1 ? 's' : ''}... (es lento para no saturar Firestore)`, 15000);
-
-  // Small delay to let Firestore stabilize
-  await new Promise(r => setTimeout(r, 500));
-
-  toast(`✓ ${n} libro${n !== 1 ? 's' : ''} eliminado${n !== 1 ? 's' : ''} de tu biblioteca y Firestore.`);
+  toast(`⏳ Eliminando ${n} libro${n !== 1 ? 's' : ''}...`, 3000);
+  toast(`✓ ${n} libro${n !== 1 ? 's' : ''} eliminado${n !== 1 ? 's' : ''} correctamente.`);
   updateSidebarStats();
   renderView();
 }
