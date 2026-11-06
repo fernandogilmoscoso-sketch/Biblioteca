@@ -1374,10 +1374,12 @@ const DB = {
     }
   },
 
-  deleteBook(id) {
+  async deleteBook(id) {
     this._b = this.books().filter(x => x.id !== id);
     this.saveBooks();
-    firestoreAPI.deleteDocument('books', id);
+    const success = await firestoreAPI.deleteDocument('books', id);
+    if (!success) console.warn(`Advertencia: no se confirmó la eliminación en Firestore para ${id}`);
+    return success;
   },
 
   loans() {
@@ -1439,10 +1441,12 @@ const DB = {
       return arr[i];
     }
   },
-  deleteSection(code) {
+  async deleteSection(code) {
     this._s = this.sections().filter(x => x.code !== code);
     this.saveSections();
-    firestoreAPI.deleteDocument('sections', code);
+    const success = await firestoreAPI.deleteDocument('sections', code);
+    if (!success) console.warn(`Advertencia: no se confirmó la eliminación en Firestore para sección ${code}`);
+    return success;
   },
 
   // ── Firestore Sync ───────────────────────────────────
@@ -3416,11 +3420,11 @@ function saveBackup() {
 // ─────────────────────────────────────────────────────
 // DELETE BOOK
 // ─────────────────────────────────────────────────────
-function deleteBook(id) {
+async function deleteBook(id) {
   const b = DB.books().find(x=>x.id===id);
   if (!b || !confirm(`¿Eliminar "${b.title}" del catálogo? Esta acción no se puede deshacer.`)) return;
-  DB.deleteBook(id);
-  toast('Libro eliminado.');
+  await DB.deleteBook(id);
+  toast('✓ Libro eliminado de tu biblioteca y Firestore.');
   updateSidebarStats();
   renderView();
 }
@@ -3985,7 +3989,7 @@ function showSecError(msg) {
   el.style.display = 'block';
 }
 
-function deleteCustomSection(code) {
+async function deleteCustomSection(code) {
   // Safety: don't delete a default section
   if (SECTIONS.some(s => s.code === code)) {
     toast('Las secciones predefinidas no se pueden eliminar.'); return;
@@ -4007,8 +4011,8 @@ function deleteCustomSection(code) {
     });
   }
 
-  DB.deleteSection(code);
-  toast(`Sección ${code} eliminada.`);
+  await DB.deleteSection(code);
+  toast(`✓ Sección ${code} eliminada de tu biblioteca y Firestore.`);
   updateSidebarStats();
   renderView();
 }
@@ -4095,7 +4099,7 @@ function validateBulkConfirm() {
   btn.style.cursor = ok ? 'pointer' : 'not-allowed';
 }
 
-function confirmBulkDelete() {
+async function confirmBulkDelete() {
   const inp = document.getElementById('bdm-confirm-input');
   if (inp.value.trim().toUpperCase() !== 'ELIMINAR') return;
 
@@ -4109,8 +4113,10 @@ function confirmBulkDelete() {
     if (loan) DB.updateLoan(loan.id, { status: 'cancelled' });
   });
 
-  // Delete each book
-  ids.forEach(id => DB.deleteBook(id));
+  // Delete each book (wait for all deletions)
+  for (const id of ids) {
+    await DB.deleteBook(id);
+  }
 
   closeBulkDeleteModal();
   clearSelection();
