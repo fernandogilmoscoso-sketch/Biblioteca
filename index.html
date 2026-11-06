@@ -1355,18 +1355,35 @@ const DB = {
   async loadFromFirestore() {
     if (this._syncing) return;
     this._syncing = true;
+
+    // Esperar a que Firestore esté disponible
+    let db = null;
+    for (let i = 0; i < 50; i++) {
+      if (firestoreDB) {
+        db = firestoreDB;
+        break;
+      }
+      await new Promise(r => setTimeout(r, 100));
+    }
+
+    if (!db) {
+      console.error('Firestore no se inicializó');
+      this._syncing = false;
+      return;
+    }
+
     try {
-      const booksSnap = await firestoreDB.collection('books').get();
+      const booksSnap = await db.collection('books').get();
       if (!booksSnap.empty) {
         this._b = booksSnap.docs.map(doc => ({...doc.data(), id: doc.id})).sort((a,b) => new Date(b.dateAdded) - new Date(a.dateAdded));
         this.saveBooks();
       }
-      const loansSnap = await firestoreDB.collection('loans').get();
+      const loansSnap = await db.collection('loans').get();
       if (!loansSnap.empty) {
         this._l = loansSnap.docs.map(doc => ({...doc.data(), id: doc.id})).sort((a,b) => new Date(b.created) - new Date(a.created));
         this.saveLoans();
       }
-      const sectionsSnap = await firestoreDB.collection('sections').get();
+      const sectionsSnap = await db.collection('sections').get();
       if (!sectionsSnap.empty) {
         this._s = sectionsSnap.docs.map(doc => doc.data());
         this.saveSections();
@@ -1380,7 +1397,7 @@ const DB = {
   },
 
   async syncBooksToFirestore() {
-    if (this._syncing) return;
+    if (this._syncing || !firestoreDB) return;
     try {
       for (const book of this._b) {
         await firestoreDB.collection('books').doc(book.id).set(book, {merge: true});
@@ -1391,7 +1408,7 @@ const DB = {
   },
 
   async syncLoansToFirestore() {
-    if (this._syncing) return;
+    if (this._syncing || !firestoreDB) return;
     try {
       for (const loan of this._l) {
         await firestoreDB.collection('loans').doc(loan.id).set(loan, {merge: true});
@@ -1402,7 +1419,7 @@ const DB = {
   },
 
   async syncSectionsToFirestore() {
-    if (this._syncing) return;
+    if (this._syncing || !firestoreDB) return;
     try {
       const snap = await firestoreDB.collection('sections').get();
       snap.docs.forEach(doc => doc.ref.delete());
