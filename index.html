@@ -1491,10 +1491,9 @@ const DB = {
         });
         this.saveSections();
       }
-      toast('📚 Datos sincronizados desde Firestore');
+      console.log('✅ Datos sincronizados desde Firestore');
     } catch (e) {
       console.error('Error cargando de Firestore:', e);
-      toast('⚠️ No se pudo sincronizar (usando datos locales)');
     }
     this._syncing = false;
   },
@@ -4139,17 +4138,29 @@ document.querySelectorAll('.nav-item').forEach(el => {
 // ─────────────────────────────────────────────────────
 checkLogin();
 
-// Sincronizar desde Firestore solo la PRIMERA VEZ en este dispositivo (si localStorage está vacío)
+// Sincronizar SIEMPRE desde Firestore al abrir la app (Firestore es la fuente de verdad)
 document.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => {
     const session = localStorage.getItem('bib_session');
     if (session) {
-      const hasLocalBooks = localStorage.getItem('bib_books');
-      if (!hasLocalBooks) {
-        // Nuevo dispositivo — cargar desde Firestore
-        DB.loadFromFirestore().catch(e => console.error('Error al cargar Firestore:', e));
-      }
+      DB.loadFromFirestore().then(() => {
+        updateSidebarStats();
+        renderView();
+      }).catch(e => console.error('Error al cargar Firestore:', e));
     }
   }, 500);
+});
+
+// También sincronizar cuando el usuario regresa a la pestaña (vuelve a la app)
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    const session = localStorage.getItem('bib_session');
+    if (session) {
+      DB.loadFromFirestore().then(() => {
+        updateSidebarStats();
+        renderView();
+      }).catch(e => console.error('Error al re-sincronizar Firestore:', e));
+    }
+  }
 });
 </script>
