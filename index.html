@@ -1279,11 +1279,15 @@ const firestoreAPI = {
   async deleteDocument(collectionName, docId) {
     try {
       const url = `${FIRESTORE_API}/${collectionName}/${docId}?key=${FIRESTORE_KEY}`;
+      console.log(`🗑️  DELETE → ${url}`);
       const resp = await fetch(url, { method: 'DELETE' });
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const text = await resp.text();
+      console.log(`📤 Respuesta DELETE: ${resp.status}`, text);
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${text}`);
+      console.log(`✅ Eliminado en Firestore: ${collectionName}/${docId}`);
       return true;
     } catch (e) {
-      console.error(`Error eliminando ${collectionName}/${docId}:`, e);
+      console.error(`❌ Error eliminando ${collectionName}/${docId}:`, e.message);
       return false;
     }
   },
@@ -4139,13 +4143,13 @@ document.querySelectorAll('.nav-item').forEach(el => {
 // ─────────────────────────────────────────────────────
 checkLogin();
 
-// Cargar datos de Firestore cuando se inicia la sesión
-document.addEventListener('DOMContentLoaded', () => {
-  setTimeout(() => {
-    const session = localStorage.getItem('bib_session');
-    if (session) {
-      DB.loadFromFirestore().catch(e => console.error('Error al cargar Firestore:', e));
-    }
-  }, 500);
-});
+// Cargar datos de Firestore cuando se inicia la sesión (DESHABILITADO — causa restauración de libros eliminados)
+// document.addEventListener('DOMContentLoaded', () => {
+//   setTimeout(() => {
+//     const session = localStorage.getItem('bib_session');
+//     if (session) {
+//       DB.loadFromFirestore().catch(e => console.error('Error al cargar Firestore:', e));
+//     }
+//   }, 500);
+// });
 </script>
