@@ -4139,13 +4139,17 @@ document.querySelectorAll('.nav-item').forEach(el => {
 // ─────────────────────────────────────────────────────
 checkLogin();
 
-// Cargar datos de Firestore cuando se inicia la sesión (DESHABILITADO — causa restauración de libros eliminados)
-// document.addEventListener('DOMContentLoaded', () => {
-//   setTimeout(() => {
-//     const session = localStorage.getItem('bib_session');
-//     if (session) {
-//       DB.loadFromFirestore().catch(e => console.error('Error al cargar Firestore:', e));
-//     }
-//   }, 500);
-// });
+// Sincronizar desde Firestore solo la PRIMERA VEZ en este dispositivo (si localStorage está vacío)
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    const session = localStorage.getItem('bib_session');
+    if (session) {
+      const hasLocalBooks = localStorage.getItem('bib_books');
+      if (!hasLocalBooks) {
+        // Nuevo dispositivo — cargar desde Firestore
+        DB.loadFromFirestore().catch(e => console.error('Error al cargar Firestore:', e));
+      }
+    }
+  }, 500);
+});
 </script>
