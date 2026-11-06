@@ -725,7 +725,7 @@ thead .row-check input[type=checkbox] { accent-color:var(--accent-fg); }
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
         Cerrar sesión
       </button>
-      <div style="font-size:9px;color:rgba(255,255,255,.4);text-align:center;margin-top:8px">v2.0 · sync</div>
+      <div style="font-size:9px;color:rgba(255,255,255,.4);text-align:center;margin-top:8px">v2.1 · await-save</div>
     </div>
   </aside>
 
@@ -1390,19 +1390,21 @@ const DB = {
     try { localStorage.setItem('bib_books', JSON.stringify(this._b)); } catch {}
   },
 
-  addBook(b) {
+  async addBook(b) {
     b.id = uid(); b.dateAdded = new Date().toISOString();
     this.books().unshift(b); this.saveBooks();
-    firestoreAPI.setDocument('books', b.id, b);
+    const ok = await firestoreAPI.setDocument('books', b.id, b);
+    if (!ok) console.warn(`⚠️ No se confirmó subida a Firestore del libro ${b.id}`);
     return b;
   },
 
-  updateBook(id, data) {
+  async updateBook(id, data) {
     const arr = this.books(), i = arr.findIndex(x => x.id === id);
     if (i >= 0) {
       arr[i] = {...arr[i], ...data};
       this.saveBooks();
-      firestoreAPI.setDocument('books', id, arr[i]);
+      const ok = await firestoreAPI.setDocument('books', id, arr[i]);
+      if (!ok) console.warn(`⚠️ No se confirmó actualización en Firestore del libro ${id}`);
       return arr[i];
     }
   },
@@ -1428,19 +1430,19 @@ const DB = {
     try { localStorage.setItem('bib_loans', JSON.stringify(this._l)); } catch {}
   },
 
-  addLoan(l) {
+  async addLoan(l) {
     l.id = uid(); l.created = new Date().toISOString();
     this.loans().unshift(l); this.saveLoans();
-    firestoreAPI.setDocument('loans', l.id, l);
+    await firestoreAPI.setDocument('loans', l.id, l);
     return l;
   },
 
-  updateLoan(id, data) {
+  async updateLoan(id, data) {
     const arr = this.loans(), i = arr.findIndex(x => x.id === id);
     if (i >= 0) {
       arr[i] = {...arr[i], ...data};
       this.saveLoans();
-      firestoreAPI.setDocument('loans', id, arr[i]);
+      await firestoreAPI.setDocument('loans', id, arr[i]);
       return arr[i];
     }
   },
@@ -1459,17 +1461,17 @@ const DB = {
   saveSections() {
     try { localStorage.setItem('bib_sections', JSON.stringify(this._s)); } catch {}
   },
-  addSection(s) {
+  async addSection(s) {
     this.sections().push(s);
     this.saveSections();
-    firestoreAPI.setDocument('sections', s.code, s);
+    await firestoreAPI.setDocument('sections', s.code, s);
   },
-  updateSection(code, data) {
+  async updateSection(code, data) {
     const arr = this.sections(), i = arr.findIndex(x => x.code === code);
     if (i >= 0) {
       arr[i] = {...arr[i], ...data};
       this.saveSections();
-      firestoreAPI.setDocument('sections', code, arr[i]);
+      await firestoreAPI.setDocument('sections', code, arr[i]);
       return arr[i];
     }
   },
@@ -2405,7 +2407,7 @@ async function compressImage(file) {
   });
 }
 
-function saveBook() {
+async function saveBook() {
   const title   = val('f-title');
   const author  = val('f-author');
   const section = val('f-section');
@@ -2451,12 +2453,18 @@ function saveBook() {
     coverImage: window._pendingPhoto || (state.editId ? (DB.books().find(b=>b.id===state.editId)?.coverImage||'') : ''),
   };
 
-  if (state.editId) {
-    DB.updateBook(state.editId, data);
-    toast('Libro actualizado correctamente.');
-  } else {
-    DB.addBook(data);
-    toast('Libro registrado correctamente.');
+  toast('⏳ Guardando en Firestore...', 10000);
+  try {
+    if (state.editId) {
+      await DB.updateBook(state.editId, data);
+      toast('✓ Libro actualizado y sincronizado.');
+    } else {
+      await DB.addBook(data);
+      toast('✓ Libro registrado y sincronizado.');
+    }
+  } catch (e) {
+    toast('✗ Error al guardar en Firestore. Revisa tu conexión.', 5000);
+    console.error(e);
   }
   window._pendingPhoto = null;
   state.editId = null;
@@ -2656,26 +2664,28 @@ function openLoanModal(bookId) {
 
 function closeLoanModal() { document.getElementById('loan-modal').style.display = 'none'; }
 
-function confirmLoan(bookId) {
+async function confirmLoan(bookId) {
   const name = document.getElementById('ln-name')?.value.trim();
   if (!name) { toast('El nombre es obligatorio.'); return; }
-  DB.addLoan({
+  closeLoanModal();
+  toast('⏳ Registrando préstamo...');
+  await DB.addLoan({
     bookId, borrowerName: name,
     borrowerPhone: document.getElementById('ln-phone')?.value.trim() || '',
     expectedReturn: document.getElementById('ln-return')?.value || '',
     notes: document.getElementById('ln-notes')?.value.trim() || '',
     status: 'active',
   });
-  closeLoanModal();
-  toast(`Préstamo de "${DB.books().find(b=>b.id===bookId)?.title||'libro'}" registrado.`);
+  toast(`✓ Préstamo de "${DB.books().find(b=>b.id===bookId)?.title||'libro'}" registrado.`);
   updateSidebarStats();
   renderView();
 }
 
-function returnLoan(loanId) {
+async function returnLoan(loanId) {
   if (!confirm('¿Confirmar devolución del libro?')) return;
-  DB.updateLoan(loanId, { status:'returned', returnDate: new Date().toISOString() });
-  toast('Devolución registrada.');
+  toast('⏳ Registrando devolución...');
+  await DB.updateLoan(loanId, { status:'returned', returnDate: new Date().toISOString() });
+  toast('✓ Devolución registrada.');
   updateSidebarStats();
   renderView();
 }
