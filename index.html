@@ -1276,6 +1276,18 @@ const firestoreAPI = {
     }
   },
 
+  async deleteDocument(collectionName, docId) {
+    try {
+      const url = `${FIRESTORE_API}/${collectionName}/${docId}?key=${FIRESTORE_KEY}`;
+      const resp = await fetch(url, { method: 'DELETE' });
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      return true;
+    } catch (e) {
+      console.error(`Error eliminando ${collectionName}/${docId}:`, e);
+      return false;
+    }
+  },
+
   encodeValue(v) {
     if (v === null) return {nullValue: null};
     if (typeof v === 'boolean') return {booleanValue: v};
@@ -1347,16 +1359,25 @@ const DB = {
 
   addBook(b) {
     b.id = uid(); b.dateAdded = new Date().toISOString();
-    this.books().unshift(b); this.saveBooks(); return b;
+    this.books().unshift(b); this.saveBooks();
+    firestoreAPI.setDocument('books', b.id, b);
+    return b;
   },
 
   updateBook(id, data) {
     const arr = this.books(), i = arr.findIndex(x => x.id === id);
-    if (i >= 0) { arr[i] = {...arr[i], ...data}; this.saveBooks(); return arr[i]; }
+    if (i >= 0) {
+      arr[i] = {...arr[i], ...data};
+      this.saveBooks();
+      firestoreAPI.setDocument('books', id, arr[i]);
+      return arr[i];
+    }
   },
 
   deleteBook(id) {
-    this._b = this.books().filter(x => x.id !== id); this.saveBooks();
+    this._b = this.books().filter(x => x.id !== id);
+    this.saveBooks();
+    firestoreAPI.deleteDocument('books', id);
   },
 
   loans() {
@@ -1374,12 +1395,19 @@ const DB = {
 
   addLoan(l) {
     l.id = uid(); l.created = new Date().toISOString();
-    this.loans().unshift(l); this.saveLoans(); return l;
+    this.loans().unshift(l); this.saveLoans();
+    firestoreAPI.setDocument('loans', l.id, l);
+    return l;
   },
 
   updateLoan(id, data) {
     const arr = this.loans(), i = arr.findIndex(x => x.id === id);
-    if (i >= 0) { arr[i] = {...arr[i], ...data}; this.saveLoans(); return arr[i]; }
+    if (i >= 0) {
+      arr[i] = {...arr[i], ...data};
+      this.saveLoans();
+      firestoreAPI.setDocument('loans', id, arr[i]);
+      return arr[i];
+    }
   },
 
   activeLoans() { return this.loans().filter(l => l.status === 'active'); },
@@ -1397,13 +1425,24 @@ const DB = {
     try { localStorage.setItem('bib_sections', JSON.stringify(this._s)); } catch {}
     this.syncSectionsToFirestore();
   },
-  addSection(s) { this.sections().push(s); this.saveSections(); },
+  addSection(s) {
+    this.sections().push(s);
+    this.saveSections();
+    firestoreAPI.setDocument('sections', s.code, s);
+  },
   updateSection(code, data) {
     const arr = this.sections(), i = arr.findIndex(x => x.code === code);
-    if (i >= 0) { arr[i] = {...arr[i], ...data}; this.saveSections(); return arr[i]; }
+    if (i >= 0) {
+      arr[i] = {...arr[i], ...data};
+      this.saveSections();
+      firestoreAPI.setDocument('sections', code, arr[i]);
+      return arr[i];
+    }
   },
   deleteSection(code) {
-    this._s = this.sections().filter(x => x.code !== code); this.saveSections();
+    this._s = this.sections().filter(x => x.code !== code);
+    this.saveSections();
+    firestoreAPI.deleteDocument('sections', code);
   },
 
   // ── Firestore Sync ───────────────────────────────────
