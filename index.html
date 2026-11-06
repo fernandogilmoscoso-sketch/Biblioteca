@@ -1240,8 +1240,23 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-firebase.initializeApp(firebaseConfig);
-const firestoreDB = firebase.firestore();
+let firestoreDB = null;
+function initFirebase() {
+  if (!window.firebase) {
+    setTimeout(initFirebase, 100);
+    return;
+  }
+  try {
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    firestoreDB = firebase.firestore();
+    console.log('✅ Firebase inicializado correctamente');
+  } catch (e) {
+    console.error('Error inicializando Firebase:', e);
+  }
+}
+initFirebase();
 
 // ─────────────────────────────────────────────────────
 // APP STATE
