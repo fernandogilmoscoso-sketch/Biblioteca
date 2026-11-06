@@ -1379,9 +1379,10 @@ const DB = {
 
   async deleteBook(id) {
     this._b = this.books().filter(x => x.id !== id);
-    this.saveBooks();
+    try { localStorage.setItem('bib_books', JSON.stringify(this._b)); } catch {}
+    // Solo eliminar en Firestore, sin sincronizar el resto de libros
     const success = await firestoreAPI.deleteDocument('books', id);
-    if (!success) console.warn(`Advertencia: no se confirmó la eliminación en Firestore para ${id}`);
+    if (!success) console.warn(`⚠️ No se confirmó DELETE en Firestore para ${id}`);
     return success;
   },
 
@@ -1446,9 +1447,10 @@ const DB = {
   },
   async deleteSection(code) {
     this._s = this.sections().filter(x => x.code !== code);
-    this.saveSections();
+    try { localStorage.setItem('bib_sections', JSON.stringify(this._s)); } catch {}
+    // Solo eliminar en Firestore, sin sincronizar el resto de secciones
     const success = await firestoreAPI.deleteDocument('sections', code);
-    if (!success) console.warn(`Advertencia: no se confirmó la eliminación en Firestore para sección ${code}`);
+    if (!success) console.warn(`⚠️ No se confirmó DELETE en Firestore para sección ${code}`);
     return success;
   },
 
