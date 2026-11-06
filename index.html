@@ -1357,7 +1357,6 @@ const DB = {
 
   saveBooks() {
     try { localStorage.setItem('bib_books', JSON.stringify(this._b)); } catch {}
-    this.syncBooksToFirestore();
   },
 
   addBook(b) {
@@ -1396,7 +1395,6 @@ const DB = {
 
   saveLoans() {
     try { localStorage.setItem('bib_loans', JSON.stringify(this._l)); } catch {}
-    this.syncLoansToFirestore();
   },
 
   addLoan(l) {
@@ -1429,7 +1427,6 @@ const DB = {
   },
   saveSections() {
     try { localStorage.setItem('bib_sections', JSON.stringify(this._s)); } catch {}
-    this.syncSectionsToFirestore();
   },
   addSection(s) {
     this.sections().push(s);
