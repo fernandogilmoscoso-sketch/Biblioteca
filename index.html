@@ -1,5 +1,7 @@
 <title>Mi Biblioteca</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=JetBrains+Mono:wght@400;500;700&display=swap">
 
@@ -1226,6 +1228,21 @@ const SECTIONS = [
 // ─────────────────────────────────────────────────────
 const OPENAI_API_KEY = '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';
 
+// Firebase Configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyBhhPJqDUhWVItIeCOazwHAn6dU1dfSVkk",
+  authDomain: "biblioteca-51353.firebaseapp.com",
+  projectId: "biblioteca-51353",
+  storageBucket: "biblioteca-51353.firebasestorage.app",
+  messagingSenderId: "369597092033",
+  appId: "1:369597092033:web:b8938e6ec952291a6b0440",
+  measurementId: "G-ED3YCRPL54"
+};
+
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+const firestoreDB = firebase.firestore();
+
 // ─────────────────────────────────────────────────────
 // APP STATE
 // ─────────────────────────────────────────────────────
@@ -1240,10 +1257,10 @@ const state = {
 };
 
 // ─────────────────────────────────────────────────────
-// DATABASE (localStorage)
+// DATABASE (Firestore + localStorage sync)
 // ─────────────────────────────────────────────────────
 const DB = {
-  _b: null, _l: null, _s: null,
+  _b: null, _l: null, _s: null, _syncing: false,
 
   books() {
     if (!this._b) {
@@ -1255,6 +1272,7 @@ const DB = {
 
   saveBooks() {
     try { localStorage.setItem('bib_books', JSON.stringify(this._b)); } catch {}
+    this.syncBooksToFirestore();
   },
 
   addBook(b) {
@@ -1281,6 +1299,7 @@ const DB = {
 
   saveLoans() {
     try { localStorage.setItem('bib_loans', JSON.stringify(this._l)); } catch {}
+    this.syncLoansToFirestore();
   },
 
   addLoan(l) {
@@ -1306,6 +1325,7 @@ const DB = {
   },
   saveSections() {
     try { localStorage.setItem('bib_sections', JSON.stringify(this._s)); } catch {}
+    this.syncSectionsToFirestore();
   },
   addSection(s) { this.sections().push(s); this.saveSections(); },
   updateSection(code, data) {
@@ -1314,6 +1334,69 @@ const DB = {
   },
   deleteSection(code) {
     this._s = this.sections().filter(x => x.code !== code); this.saveSections();
+  },
+
+  // ── Firestore Sync ───────────────────────────────────
+  async loadFromFirestore() {
+    if (this._syncing) return;
+    this._syncing = true;
+    try {
+      const booksSnap = await firestoreDB.collection('books').get();
+      if (!booksSnap.empty) {
+        this._b = booksSnap.docs.map(doc => ({...doc.data(), id: doc.id})).sort((a,b) => new Date(b.dateAdded) - new Date(a.dateAdded));
+        this.saveBooks();
+      }
+      const loansSnap = await firestoreDB.collection('loans').get();
+      if (!loansSnap.empty) {
+        this._l = loansSnap.docs.map(doc => ({...doc.data(), id: doc.id})).sort((a,b) => new Date(b.created) - new Date(a.created));
+        this.saveLoans();
+      }
+      const sectionsSnap = await firestoreDB.collection('sections').get();
+      if (!sectionsSnap.empty) {
+        this._s = sectionsSnap.docs.map(doc => doc.data());
+        this.saveSections();
+      }
+      toast('📚 Datos sincronizados desde Firestore');
+    } catch (e) {
+      console.error('Error cargando de Firestore:', e);
+      toast('⚠️ No se pudo sincronizar (usando datos locales)');
+    }
+    this._syncing = false;
+  },
+
+  async syncBooksToFirestore() {
+    if (this._syncing) return;
+    try {
+      for (const book of this._b) {
+        await firestoreDB.collection('books').doc(book.id).set(book, {merge: true});
+      }
+    } catch (e) {
+      console.error('Error guardando libros en Firestore:', e);
+    }
+  },
+
+  async syncLoansToFirestore() {
+    if (this._syncing) return;
+    try {
+      for (const loan of this._l) {
+        await firestoreDB.collection('loans').doc(loan.id).set(loan, {merge: true});
+      }
+    } catch (e) {
+      console.error('Error guardando préstamos en Firestore:', e);
+    }
+  },
+
+  async syncSectionsToFirestore() {
+    if (this._syncing) return;
+    try {
+      const snap = await firestoreDB.collection('sections').get();
+      snap.docs.forEach(doc => doc.ref.delete());
+      for (const section of this._s) {
+        await firestoreDB.collection('sections').doc(section.code).set(section);
+      }
+    } catch (e) {
+      console.error('Error guardando secciones en Firestore:', e);
+    }
   },
 };
 
@@ -3934,4 +4017,14 @@ document.querySelectorAll('.nav-item').forEach(el => {
 // INIT
 // ─────────────────────────────────────────────────────
 checkLogin();
+
+// Cargar datos de Firestore cuando se inicia la sesión
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    const session = localStorage.getItem('bib_session');
+    if (session) {
+      DB.loadFromFirestore().catch(e => console.error('Error al cargar Firestore:', e));
+    }
+  }, 500);
+});
 </script>
