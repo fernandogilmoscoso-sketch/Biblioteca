@@ -1051,9 +1051,15 @@ function handleLogin() {
   localStorage.setItem('bib_session', 'true');
   document.getElementById('login-modal').style.display = 'none';
   document.getElementById('app').style.display = 'flex';
-  loadSampleData();
-  updateSidebarStats();
-  renderView();
+  // Primero sincronizar desde Firestore, luego renderizar (NO cargar datos de muestra)
+  DB.loadFromFirestore().then(() => {
+    updateSidebarStats();
+    renderView();
+  }).catch(e => {
+    console.error('Error al cargar Firestore:', e);
+    updateSidebarStats();
+    renderView();
+  });
 }
 
 function showPasswordRecovery() {
