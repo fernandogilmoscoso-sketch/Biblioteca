@@ -1239,24 +1239,81 @@ const firebaseConfig = {
   measurementId: "G-ED3YCRPL54"
 };
 
-// Initialize Firebase
-let firestoreDB = null;
-function initFirebase() {
-  if (!window.firebase) {
-    setTimeout(initFirebase, 100);
-    return;
-  }
-  try {
-    if (!firebase.apps.length) {
-      firebase.initializeApp(firebaseConfig);
+// Initialize Firestore REST API
+const FIRESTORE_API = 'https://firestore.googleapis.com/v1/projects/biblioteca-51353/databases/(default)/documents';
+const FIRESTORE_KEY = firebaseConfig.apiKey;
+
+// Wrapper para usar Firestore REST API
+const firestoreAPI = {
+  async getCollection(collectionName) {
+    try {
+      const url = `${FIRESTORE_API}/${collectionName}?key=${FIRESTORE_KEY}`;
+      const resp = await fetch(url);
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const data = await resp.json();
+      return data.documents || [];
+    } catch (e) {
+      console.error(`Error obteniendo ${collectionName}:`, e);
+      return [];
     }
-    firestoreDB = firebase.firestore();
-    console.log('✅ Firebase inicializado correctamente');
-  } catch (e) {
-    console.error('Error inicializando Firebase:', e);
+  },
+
+  async setDocument(collectionName, docId, docData) {
+    try {
+      const url = `${FIRESTORE_API}/${collectionName}/${docId}?key=${FIRESTORE_KEY}`;
+      const fields = {};
+      for (const [k, v] of Object.entries(docData)) {
+        fields[k] = this.encodeValue(v);
+      }
+      const resp = await fetch(url, {
+        method: 'PATCH',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({fields})
+      });
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      return true;
+    } catch (e) {
+      console.error(`Error guardando ${collectionName}/${docId}:`, e);
+      return false;
+    }
+  },
+
+  encodeValue(v) {
+    if (v === null) return {nullValue: null};
+    if (typeof v === 'boolean') return {booleanValue: v};
+    if (typeof v === 'number') return {integerValue: String(v)};
+    if (typeof v === 'string') return {stringValue: v};
+    if (Array.isArray(v)) return {arrayValue: {values: v.map(x => this.encodeValue(x))}};
+    if (typeof v === 'object') {
+      const fields = {};
+      for (const [k, val] of Object.entries(v)) {
+        fields[k] = this.encodeValue(val);
+      }
+      return {mapValue: {fields}};
+    }
+    return {stringValue: String(v)};
+  },
+
+  decodeValue(fv) {
+    if (!fv) return null;
+    if ('nullValue' in fv) return null;
+    if ('booleanValue' in fv) return fv.booleanValue;
+    if ('integerValue' in fv) return parseInt(fv.integerValue);
+    if ('doubleValue' in fv) return parseFloat(fv.doubleValue);
+    if ('stringValue' in fv) return fv.stringValue;
+    if ('arrayValue' in fv) return (fv.arrayValue.values || []).map(x => this.decodeValue(x));
+    if ('mapValue' in fv) {
+      const obj = {};
+      for (const [k, v] of Object.entries(fv.mapValue.fields || {})) {
+        obj[k] = this.decodeValue(v);
+      }
+      return obj;
+    }
+    return null;
   }
-}
-initFirebase();
+};
+
+console.log('✅ Firestore API REST inicializado');
 
 // ─────────────────────────────────────────────────────
 // APP STATE
@@ -1355,37 +1412,40 @@ const DB = {
   async loadFromFirestore() {
     if (this._syncing) return;
     this._syncing = true;
-
-    // Esperar a que Firestore esté disponible
-    let db = null;
-    for (let i = 0; i < 50; i++) {
-      if (firestoreDB) {
-        db = firestoreDB;
-        break;
-      }
-      await new Promise(r => setTimeout(r, 100));
-    }
-
-    if (!db) {
-      console.error('Firestore no se inicializó');
-      this._syncing = false;
-      return;
-    }
-
     try {
-      const booksSnap = await db.collection('books').get();
-      if (!booksSnap.empty) {
-        this._b = booksSnap.docs.map(doc => ({...doc.data(), id: doc.id})).sort((a,b) => new Date(b.dateAdded) - new Date(a.dateAdded));
+      const booksDocs = await firestoreAPI.getCollection('books');
+      if (booksDocs.length > 0) {
+        this._b = booksDocs.map(doc => {
+          const data = {};
+          for (const [k, v] of Object.entries(doc.fields || {})) {
+            data[k] = firestoreAPI.decodeValue(v);
+          }
+          data.id = doc.name.split('/').pop();
+          return data;
+        }).sort((a,b) => new Date(b.dateAdded) - new Date(a.dateAdded));
         this.saveBooks();
       }
-      const loansSnap = await db.collection('loans').get();
-      if (!loansSnap.empty) {
-        this._l = loansSnap.docs.map(doc => ({...doc.data(), id: doc.id})).sort((a,b) => new Date(b.created) - new Date(a.created));
+      const loansDocs = await firestoreAPI.getCollection('loans');
+      if (loansDocs.length > 0) {
+        this._l = loansDocs.map(doc => {
+          const data = {};
+          for (const [k, v] of Object.entries(doc.fields || {})) {
+            data[k] = firestoreAPI.decodeValue(v);
+          }
+          data.id = doc.name.split('/').pop();
+          return data;
+        }).sort((a,b) => new Date(b.created) - new Date(a.created));
         this.saveLoans();
       }
-      const sectionsSnap = await db.collection('sections').get();
-      if (!sectionsSnap.empty) {
-        this._s = sectionsSnap.docs.map(doc => doc.data());
+      const sectionsDocs = await firestoreAPI.getCollection('sections');
+      if (sectionsDocs.length > 0) {
+        this._s = sectionsDocs.map(doc => {
+          const data = {};
+          for (const [k, v] of Object.entries(doc.fields || {})) {
+            data[k] = firestoreAPI.decodeValue(v);
+          }
+          return data;
+        });
         this.saveSections();
       }
       toast('📚 Datos sincronizados desde Firestore');
@@ -1397,37 +1457,23 @@ const DB = {
   },
 
   async syncBooksToFirestore() {
-    if (this._syncing || !firestoreDB) return;
-    try {
-      for (const book of this._b) {
-        await firestoreDB.collection('books').doc(book.id).set(book, {merge: true});
-      }
-    } catch (e) {
-      console.error('Error guardando libros en Firestore:', e);
+    if (this._syncing) return;
+    for (const book of this._b) {
+      await firestoreAPI.setDocument('books', book.id, book);
     }
   },
 
   async syncLoansToFirestore() {
-    if (this._syncing || !firestoreDB) return;
-    try {
-      for (const loan of this._l) {
-        await firestoreDB.collection('loans').doc(loan.id).set(loan, {merge: true});
-      }
-    } catch (e) {
-      console.error('Error guardando préstamos en Firestore:', e);
+    if (this._syncing) return;
+    for (const loan of this._l) {
+      await firestoreAPI.setDocument('loans', loan.id, loan);
     }
   },
 
   async syncSectionsToFirestore() {
-    if (this._syncing || !firestoreDB) return;
-    try {
-      const snap = await firestoreDB.collection('sections').get();
-      snap.docs.forEach(doc => doc.ref.delete());
-      for (const section of this._s) {
-        await firestoreDB.collection('sections').doc(section.code).set(section);
-      }
-    } catch (e) {
-      console.error('Error guardando secciones en Firestore:', e);
+    if (this._syncing) return;
+    for (const section of this._s) {
+      await firestoreAPI.setDocument('sections', section.code, section);
     }
   },
 };
